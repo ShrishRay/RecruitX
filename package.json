@@ -1,0 +1,15 @@
+{
+  "name": "recruitx",
+  "version": "1.0.0",
+  "description": "RecruitX — Intelligent Hiring Platform (Full Stack)",
+  "scripts": {
+    "start": "concurrently -n \"API,WEB\" -c \"cyan,magenta\" \"npm run server\" \"npm run client\"",
+    "dev": "concurrently -n \"API,WEB\" -c \"cyan,magenta\" \"npm run server\" \"npm run client\"",
+    "server": "cd backend && node server.js",
+    "client": "cd frontend && npm run dev",
+    "install-all": "cd backend && npm install && cd ../frontend && npm install"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
