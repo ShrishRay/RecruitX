@@ -9,8 +9,11 @@ import Spinner from '../../components/ui/Spinner';
 import EmptyState from '../../components/ui/EmptyState';
 import ProgressBar from '../../components/ui/ProgressBar';
 import Modal from '../../components/ui/Modal';
+import { useAuth } from '../../context/AuthContext';
+import VerificationModal from '../../components/VerificationModal';
 
 export default function BrowseJobs() {
+  const { user } = useAuth();
   const { showSuccess, showError } = useToast();
   const [jobs, setJobs] = useState([]);
   const [matches, setMatches] = useState({});
@@ -18,6 +21,7 @@ export default function BrowseJobs() {
   const [loading, setLoading] = useState(true);
   const [applying, setApplying] = useState(null);
   const [selectedJob, setSelectedJob] = useState(null);
+  const [showVerificationModal, setShowVerificationModal] = useState(false);
 
   // Search & Filter State
   const [searchQuery, setSearchQuery] = useState('');
@@ -55,6 +59,12 @@ export default function BrowseJobs() {
   };
 
   const handleApply = async (jobId) => {
+    if (!user?.isEmailVerified || !user?.isPhoneVerified) {
+      showError('Candidate verification required! Please verify your email and phone number.');
+      setShowVerificationModal(true);
+      return;
+    }
+
     setApplying(jobId);
     try {
       await api.post('/applications', { jobId });
@@ -62,6 +72,9 @@ export default function BrowseJobs() {
       showSuccess('Application submitted successfully!');
     } catch (err) {
       console.error('Error applying:', err);
+      if (err.response?.data?.code === 'VERIFICATION_REQUIRED') {
+        setShowVerificationModal(true);
+      }
       showError(err.response?.data?.message || 'Error submitting application');
     } finally {
       setApplying(null);
@@ -187,6 +200,9 @@ export default function BrowseJobs() {
                         <h3 className="text-base font-bold text-slate-900 truncate">{job.title}</h3>
                         <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-slate-500 mt-1">
                           <span className="text-slate-800">{job.postedBy?.company || 'Company'}</span>
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80">
+                            🛡️ {job.postedBy?.trustScore !== undefined ? job.postedBy.trustScore : 100}% Trust Score
+                          </span>
                           <span>·</span>
                           <span>{job.location}</span>
                           {job.salary && (
@@ -314,6 +330,12 @@ export default function BrowseJobs() {
           </div>
         )}
       </Modal>
+
+      {/* Identity & Verification Modal */}
+      <VerificationModal
+        isOpen={showVerificationModal}
+        onClose={() => setShowVerificationModal(false)}
+      />
     </div>
   );
 }

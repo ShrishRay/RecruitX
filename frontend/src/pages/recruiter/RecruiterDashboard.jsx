@@ -9,6 +9,7 @@ import Button from '../../components/ui/Button';
 import Spinner from '../../components/ui/Spinner';
 import EmptyState from '../../components/ui/EmptyState';
 import ConfirmModal from '../../components/ui/ConfirmModal';
+import VerificationModal from '../../components/VerificationModal';
 
 export default function RecruiterDashboard() {
   const { user } = useAuth();
@@ -19,6 +20,7 @@ export default function RecruiterDashboard() {
   const [loading, setLoading] = useState(true);
   const [deletingJobId, setDeletingJobId] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showVerificationModal, setShowVerificationModal] = useState(false);
 
   useEffect(() => {
     fetchJobs();
@@ -60,14 +62,14 @@ export default function RecruiterDashboard() {
     setIsDeleting(true);
     try {
       await api.delete(`/jobs/${deletingJobId}`);
+      showSuccess('Job deleted successfully');
       setJobs(jobs.filter(j => j._id !== deletingJobId));
-      showSuccess('Job posting deleted successfully');
+      setDeletingJobId(null);
     } catch (err) {
       console.error('Error deleting job:', err);
-      showError('Failed to delete job posting');
+      showError(err.response?.data?.message || 'Error deleting job');
     } finally {
       setIsDeleting(false);
-      setDeletingJobId(null);
     }
   };
 
@@ -77,6 +79,8 @@ export default function RecruiterDashboard() {
   if (loading) {
     return <Spinner className="py-32" size="lg" />;
   }
+
+  const trustScore = user?.trustScore !== undefined ? user.trustScore : 100;
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -97,6 +101,43 @@ export default function RecruiterDashboard() {
           </Button>
         </Link>
       </div>
+
+      {/* Recruiter Trust Score Banner */}
+      <Card hover={false} className="p-5 border-l-4 border-l-emerald-500 bg-gradient-to-r from-emerald-50/40 via-indigo-50/20 to-slate-50">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-lg">🛡️</span>
+              <h2 className="text-base font-bold text-slate-900">Recruiter Authenticity & Trust Score</h2>
+              <span className={`px-2.5 py-0.5 rounded-full text-xs font-black ${trustScore === 100 ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 'bg-amber-100 text-amber-800 border border-amber-200'}`}>
+                {trustScore}% Trust Score
+              </span>
+            </div>
+            <p className="text-xs text-slate-600 mt-1">
+              Your trust score is displayed to candidates on your job postings. Verify both email and phone number to reach 100% Verified Employer status.
+            </p>
+            <div className="flex items-center gap-3 mt-2 text-xs font-semibold">
+              <span className={user?.isEmailVerified ? 'text-emerald-700 font-bold' : 'text-slate-500'}>
+                Email Verified: {user?.isEmailVerified ? 'Yes (+50%) ✓' : 'No ✗'}
+              </span>
+              <span>·</span>
+              <span className={user?.isPhoneVerified ? 'text-emerald-700 font-bold' : 'text-slate-500'}>
+                Phone Verified: {user?.isPhoneVerified ? 'Yes (+50%) ✓' : 'No ✗'}
+              </span>
+            </div>
+          </div>
+
+          <Button
+            type="button"
+            size="sm"
+            variant="secondary"
+            onClick={() => setShowVerificationModal(true)}
+            className="font-bold shrink-0"
+          >
+            {trustScore === 100 ? 'View Verification Badges' : 'Boost Trust Score'}
+          </Button>
+        </div>
+      </Card>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -217,7 +258,14 @@ export default function RecruiterDashboard() {
         title="Delete Job Posting?"
         message="Are you sure you want to delete this job posting? All candidate applications associated with this job will also be removed."
         confirmText="Delete Posting"
+        confirmVariant="danger"
         loading={isDeleting}
+      />
+
+      {/* Identity Verification Modal */}
+      <VerificationModal
+        isOpen={showVerificationModal}
+        onClose={() => setShowVerificationModal(false)}
       />
     </div>
   );

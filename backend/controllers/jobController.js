@@ -37,11 +37,11 @@ exports.getJobs = async (req, res) => {
     let jobs;
     if (req.user.role === 'recruiter') {
       jobs = await Job.find({ postedBy: req.user._id })
-        .populate('postedBy', 'name company')
+        .populate('postedBy', 'name company trustScore isEmailVerified isPhoneVerified')
         .sort({ createdAt: -1 });
     } else {
       jobs = await Job.find({ isActive: true })
-        .populate('postedBy', 'name company')
+        .populate('postedBy', 'name company trustScore isEmailVerified isPhoneVerified')
         .sort({ createdAt: -1 });
     }
 
@@ -57,7 +57,7 @@ exports.getJobs = async (req, res) => {
 exports.getAllJobs = async (req, res) => {
   try {
     const jobs = await Job.find({ isActive: true })
-      .populate('postedBy', 'name company')
+      .populate('postedBy', 'name company trustScore isEmailVerified isPhoneVerified')
       .sort({ createdAt: -1 });
 
     res.json({ jobs });
@@ -72,7 +72,7 @@ exports.getAllJobs = async (req, res) => {
 exports.getJob = async (req, res) => {
   try {
     const job = await Job.findById(req.params.id)
-      .populate('postedBy', 'name company');
+      .populate('postedBy', 'name company trustScore isEmailVerified isPhoneVerified');
 
     if (!job) {
       return res.status(404).json({ message: 'Job not found' });
@@ -92,7 +92,8 @@ exports.deleteJob = async (req, res) => {
     if (!job) {
       return res.status(404).json({ message: 'Job not found' });
     }
-    if (job.postedBy.toString() !== req.user._id.toString()) {
+    const postedById = typeof job.postedBy === 'object' ? job.postedBy._id || job.postedBy : job.postedBy;
+    if (String(postedById) !== String(req.user._id)) {
       return res.status(403).json({ message: 'Not authorized to delete this job' });
     }
     await Job.findByIdAndDelete(req.params.id);

@@ -16,9 +16,9 @@ async function seedDatabase() {
   console.log('🌱 Seeding database with sample data...');
 
   // ── Create Recruiters ─────────────────────────────────
-  const r1 = await User.create({ name: 'Sarah Chen', email: 'sarah@techcorp.com', password: 'password123', role: 'recruiter', company: 'TechCorp Solutions' });
-  const r2 = await User.create({ name: 'Marcus Williams', email: 'marcus@innovate.io', password: 'password123', role: 'recruiter', company: 'Innovate.io' });
-  const r3 = await User.create({ name: 'Priya Sharma', email: 'priya@dataflow.ai', password: 'password123', role: 'recruiter', company: 'DataFlow AI' });
+  const r1 = await User.create({ name: 'Sarah Chen', email: 'sarah@techcorp.com', password: 'password123', role: 'recruiter', company: 'TechCorp Solutions', phone: '+1 (555) 019-2834', isEmailVerified: true, isPhoneVerified: true, trustScore: 100 });
+  const r2 = await User.create({ name: 'Marcus Williams', email: 'marcus@innovate.io', password: 'password123', role: 'recruiter', company: 'Innovate.io', phone: '+1 (555) 349-8120', isEmailVerified: true, isPhoneVerified: false, trustScore: 50 });
+  const r3 = await User.create({ name: 'Priya Sharma', email: 'priya@dataflow.ai', password: 'password123', role: 'recruiter', company: 'DataFlow AI', phone: '+1 (555) 981-4321', isEmailVerified: true, isPhoneVerified: true, trustScore: 100 });
   const recruiters = [r1, r2, r3];
 
   // ── Create Candidates ─────────────────────────────────
@@ -26,6 +26,7 @@ async function seedDatabase() {
   const candidateData = [
     {
       name: 'Alex Rivera', email: 'alex@email.com', password: 'password123', role: 'candidate',
+      phone: '+1 (555) 432-1098', isEmailVerified: true, isPhoneVerified: false, trustScore: 50,
       skills: ['React', 'Node.js', 'TypeScript', 'MongoDB', 'GraphQL'], experience: 4,
       projects: [
         { title: 'E-commerce Platform', description: 'Built a full-stack e-commerce platform with React and Node.js, featuring real-time inventory management', technologies: ['React', 'Node.js', 'Stripe', 'MongoDB'] },

@@ -26,8 +26,16 @@ exports.applyToJob = async (req, res) => {
       return res.status(400).json({ message: 'You have already applied to this job' });
     }
 
-    // Get full candidate profile for match scoring
+    // Get full candidate profile for verification check & match scoring
     const candidate = await User.findById(req.user._id);
+    if (!candidate || !candidate.isEmailVerified || !candidate.isPhoneVerified) {
+      return res.status(403).json({
+        message: 'Candidate verification required. Please verify both your email address and phone number before applying for job openings.',
+        code: 'VERIFICATION_REQUIRED',
+        isEmailVerified: !!candidate?.isEmailVerified,
+        isPhoneVerified: !!candidate?.isPhoneVerified
+      });
+    }
 
     // Compute match score
     const matchScore = computeMatchScore(candidate, job);
@@ -118,16 +126,19 @@ exports.updateApplicationStatus = async (req, res) => {
       return res.status(404).json({ message: 'Application not found' });
     }
 
-    const job = await Job.findById(application.job);
-    if (!job || job.postedBy.toString() !== req.user._id.toString()) {
+    const jobId = typeof application.job === 'object' ? application.job._id || application.job : application.job;
+    const job = await Job.findById(jobId);
+    if (!job) {
+      return res.status(404).json({ message: 'Job not found' });
+    }
+
+    const postedById = typeof job.postedBy === 'object' ? job.postedBy._id || job.postedBy : job.postedBy;
+    if (String(postedById) !== String(req.user._id)) {
       return res.status(403).json({ message: 'Not authorized to update this application' });
     }
 
-    const updated = await Application.findByIdAndUpdate(
-      req.params.id,
-      { status },
-      { returnDocument: 'after' } // Return the updated document
-    ).populate('candidate', 'name email skills experience');
+    await Application.findByIdAndUpdate(req.params.id, { status });
+    const updated = await Application.findById(req.params.id).populate('candidate', 'name email skills experience');
 
     res.json({ application: updated });
   } catch (error) {

@@ -14,7 +14,8 @@ exports.getRankedCandidates = async (req, res) => {
       return res.status(404).json({ message: 'Job not found' });
     }
 
-    if (job.postedBy.toString() !== req.user._id.toString()) {
+    const postedById = typeof job.postedBy === 'object' ? job.postedBy._id || job.postedBy : job.postedBy;
+    if (String(postedById) !== String(req.user._id)) {
       return res.status(403).json({ message: 'Not authorized' });
     }
 

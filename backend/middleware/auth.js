@@ -16,7 +16,8 @@ const protect = async (req, res, next) => {
       return res.status(401).json({ message: 'Not authorized — no token provided' });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const secret = process.env.JWT_SECRET || 'recruitx_jwt_secret_key_2026_super_secret';
+    const decoded = jwt.verify(token, secret);
 
     const user = await User.findById(decoded.id);
     if (!user) {

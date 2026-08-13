@@ -12,6 +12,7 @@ export default function Signup() {
   const [searchParams] = useSearchParams();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState(searchParams.get('role') || 'candidate');
   const [company, setCompany] = useState('');
@@ -30,8 +31,8 @@ export default function Signup() {
     e.preventDefault();
     setError('');
 
-    if (!name || !email || !password) {
-      setError('Please fill in all required fields');
+    if (!name || !email || !password || !phone) {
+      setError('Please fill in all required fields, including mobile phone number');
       return;
     }
     if (password.length < 6) {
@@ -45,7 +46,7 @@ export default function Signup() {
 
     setLoading(true);
     try {
-      const user = await signup({ name, email, password, role, company });
+      const user = await signup({ name, email, password, phone, role, company });
       showSuccess(`Account created! Welcome to RecruitX, ${user.name}`);
       navigate(user.role === 'candidate' ? '/candidate/profile' : '/recruiter/dashboard');
     } catch (err) {
@@ -187,6 +188,15 @@ export default function Signup() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="e.g. john@example.com"
+              required
+            />
+
+            <Input
+              label="Mobile Phone Number"
+              type="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="e.g. 9699735364"
               required
             />
 

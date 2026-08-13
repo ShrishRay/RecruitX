@@ -77,6 +77,19 @@ export function AuthProvider({ children }) {
     setUser(null);
   };
 
+  const sendOtp = async (type, target) => {
+    const res = await api.post('/auth/send-otp', { type, target });
+    return res.data;
+  };
+
+  const verifyOtp = async (type, otp, phone) => {
+    const res = await api.post('/auth/verify-otp', { type, otp, phone });
+    const { user: updatedUser } = res.data;
+    setUser(updatedUser);
+    localStorage.setItem('recruitx_user', JSON.stringify(updatedUser));
+    return res.data;
+  };
+
   const updateUser = (updatedFields) => {
     const updated = { ...user, ...updatedFields };
     setUser(updated);
@@ -84,7 +97,7 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, loginWithGoogle, signup, logout, updateUser, isAuthenticated: !!token }}>
+    <AuthContext.Provider value={{ user, token, loading, login, loginWithGoogle, signup, logout, updateUser, sendOtp, verifyOtp, isAuthenticated: !!token }}>
       {children}
     </AuthContext.Provider>
   );

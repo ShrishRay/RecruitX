@@ -10,9 +10,17 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const googleProvider = new GoogleAuthProvider();
+let auth = null;
+let googleProvider = null;
+
+try {
+  if (import.meta.env.VITE_FIREBASE_API_KEY) {
+    const app = initializeApp(firebaseConfig);
+    auth = getAuth(app);
+    googleProvider = new GoogleAuthProvider();
+  }
+} catch (err) {
+  console.warn('Firebase initialization skipped or failed:', err.message);
+}
 
 export { auth, googleProvider };

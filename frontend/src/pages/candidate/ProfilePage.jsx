@@ -7,12 +7,14 @@ import TagInput from '../../components/ui/TagInput';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import Spinner from '../../components/ui/Spinner';
+import VerificationModal from '../../components/VerificationModal';
 
 export default function ProfilePage() {
   const { user, updateUser } = useAuth();
   const { showSuccess, showError } = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [showVerificationModal, setShowVerificationModal] = useState(false);
   const [form, setForm] = useState({
     name: '',
     skills: [],
@@ -61,19 +63,22 @@ export default function ProfilePage() {
         },
         projects: form.projects.filter(p => p.title.trim() !== ''),
       };
-      await api.put('/candidate/profile', payload);
-      updateUser({ name: form.name });
-      showSuccess('Profile updated successfully!');
+      const res = await api.put('/candidate/profile', payload);
+      updateUser(res.data.profile);
+      showSuccess('Profile updated successfully');
     } catch (err) {
       console.error('Error saving profile:', err);
-      showError('Error updating profile');
+      showError('Failed to save profile changes');
     } finally {
       setSaving(false);
     }
   };
 
   const addProject = () => {
-    setForm({ ...form, projects: [...form.projects, { title: '', description: '', technologies: [] }] });
+    setForm({
+      ...form,
+      projects: [...form.projects, { title: '', description: '', technologies: [] }],
+    });
   };
 
   const removeProject = (index) => {
@@ -90,14 +95,54 @@ export default function ProfilePage() {
     return <Spinner className="py-32" size="lg" />;
   }
 
+  const isFullyVerified = user?.isEmailVerified && user?.isPhoneVerified;
+
   return (
     <div className="max-w-3xl mx-auto space-y-6 animate-fade-in">
+      {showVerificationModal && <VerificationModal onClose={() => setShowVerificationModal(false)} />}
       <div>
         <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Candidate Profile</h1>
         <p className="text-sm font-medium text-slate-500 mt-1">
-          Keep your skills and project history updated to maximize your match score.
+          Keep your skills, experience, and verification details updated to apply for job openings.
         </p>
       </div>
+
+      {/* Account Verification Card */}
+      <Card hover={false} className="p-5 border-l-4 border-l-indigo-600 bg-gradient-to-r from-indigo-50/40 to-slate-50">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <h2 className="text-base font-bold text-slate-900">Identity Verification Status</h2>
+              <span className={`px-2 py-0.5 rounded-md text-xs font-extrabold ${isFullyVerified ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`}>
+                {isFullyVerified ? 'Verified Profile ✓' : 'Verification Required ⚡'}
+              </span>
+            </div>
+            <p className="text-xs text-slate-600 mt-1">
+              {isFullyVerified 
+                ? 'Your profile is fully verified! You can apply for all active job requisitions.' 
+                : 'Please complete both Email and Phone verification to unlock job applications.'}
+            </p>
+            <div className="flex items-center gap-3 mt-2.5 text-xs font-semibold">
+              <span className={user?.isEmailVerified ? 'text-emerald-700 font-bold' : 'text-slate-500'}>
+                Email: {user?.isEmailVerified ? 'Verified ✓' : 'Unverified ✗'}
+              </span>
+              <span>·</span>
+              <span className={user?.isPhoneVerified ? 'text-emerald-700 font-bold' : 'text-slate-500'}>
+                Phone: {user?.isPhoneVerified ? `Verified (${user?.phone || ''}) ✓` : 'Unverified ✗'}
+              </span>
+            </div>
+          </div>
+
+          <Button
+            type="button"
+            size="sm"
+            onClick={() => setShowVerificationModal(true)}
+            className="font-bold shrink-0 bg-indigo-600 hover:bg-indigo-700 shadow-sm"
+          >
+            {isFullyVerified ? 'Manage Verification' : 'Verify Account Now'}
+          </Button>
+        </div>
+      </Card>
 
       <form onSubmit={handleSave} className="space-y-6">
         {/* Basic Info */}
@@ -250,6 +295,12 @@ export default function ProfilePage() {
           </Button>
         </div>
       </form>
+
+      {/* Identity Verification Modal */}
+      <VerificationModal
+        isOpen={showVerificationModal}
+        onClose={() => setShowVerificationModal(false)}
+      />
     </div>
   );
 }
