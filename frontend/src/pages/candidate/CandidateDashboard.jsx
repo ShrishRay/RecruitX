@@ -8,11 +8,13 @@ import ProgressBar from '../../components/ui/ProgressBar';
 import Spinner from '../../components/ui/Spinner';
 import EmptyState from '../../components/ui/EmptyState';
 import Button from '../../components/ui/Button';
+import SkillAssessmentModal from '../../components/SkillAssessmentModal';
 
 export default function CandidateDashboard() {
   const { user } = useAuth();
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [assessmentJob, setAssessmentJob] = useState(null);
 
   useEffect(() => {
     fetchApplications();
@@ -21,13 +23,15 @@ export default function CandidateDashboard() {
   const fetchApplications = async () => {
     try {
       const res = await api.get('/applications/candidate');
-      setApplications(res.data.applications);
+      setApplications(res.data.applications || []);
     } catch (err) {
       console.error('Error fetching applications:', err);
     } finally {
       setLoading(false);
     }
   };
+
+  const isResumeVerified = !!user?.isResumeVerified && !user?.isSuspended && user?.accountStatus !== 'rejected';
 
   const stats = {
     total: applications.length,
@@ -43,7 +47,19 @@ export default function CandidateDashboard() {
   }
 
   return (
-    <div className="space-y-8 animate-fade-in">
+    <div className="space-y-8 animate-fade-in pb-16">
+      {/* Skill Assessment Modal for Jobs */}
+      {assessmentJob && (
+        <SkillAssessmentModal
+          isOpen={!!assessmentJob}
+          onClose={() => setAssessmentJob(null)}
+          job={assessmentJob}
+          onAssessmentComplete={() => {
+            fetchApplications();
+          }}
+        />
+      )}
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -51,14 +67,21 @@ export default function CandidateDashboard() {
             Welcome back, {user?.name?.split(' ')[0]}
           </h1>
           <p className="text-sm font-medium text-slate-500 mt-1">
-            Track your job applications and check live candidate match scores.
+            Track your job applications, required skill assessments, and recruiter shortlisting status.
           </p>
         </div>
-        <Link to="/candidate/jobs">
-          <Button size="md" className="font-bold bg-indigo-600 hover:bg-indigo-700">
-            Browse All Jobs
-          </Button>
-        </Link>
+        <div className="flex flex-wrap items-center gap-3">
+          <Link to="/candidate/profile">
+            <Button variant="secondary" size="md" className="font-bold">
+              {isResumeVerified ? '🛡️ Resume Verified ✓' : '⚠️ Verify Resume'}
+            </Button>
+          </Link>
+          <Link to="/candidate/jobs">
+            <Button size="md" className="font-bold bg-indigo-600 hover:bg-indigo-700">
+              Browse All Jobs
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {/* Stats Overview */}
@@ -94,62 +117,105 @@ export default function CandidateDashboard() {
             description="Explore open engineering and product roles tailored to your skill set."
             action={
               <Link to="/candidate/jobs">
-                <Button className="font-bold">Browse Jobs Now</Button>
+                <Button className="font-bold bg-indigo-600 hover:bg-indigo-700">Browse Jobs Now</Button>
               </Link>
             }
           />
         ) : (
-          <div className="space-y-3 stagger-children">
-            {applications.map((app) => (
-              <Card key={app._id} className="p-5">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <div className="space-y-1.5 min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-2.5">
-                      <h3 className="text-base font-bold text-slate-900 truncate">
-                        {app.job?.title || 'Position'}
-                      </h3>
-                      <Badge variant={app.status}>
-                        {app.status.charAt(0).toUpperCase() + app.status.slice(1)}
-                      </Badge>
-                    </div>
+          <div className="space-y-3">
+            {applications.map((app) => {
+              const job = app.job || {};
+              const assessments = job.assessments || (job.assessment ? [job.assessment] : []);
+              const results = app.assessmentResults || [];
+              const allPassed = app.allAssessmentsPassed || (results.length > 0 && results.every(r => r.passed)) || (app.assessmentPassed === true);
+              const isQualified = isResumeVerified && app.matchScore >= 50 && allPassed;
 
-                    <div className="flex flex-wrap items-center gap-3 text-xs font-semibold text-slate-500">
-                      {app.job?.postedBy?.company && (
-                        <span className="flex items-center gap-1.5 text-slate-700">
-                          <svg className="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                          </svg>
-                          <span className="font-bold text-slate-900">{app.job.postedBy.company}</span>
-                          {app.job.postedBy?.isCompanyVerified && (
-                            <span className="px-1.5 py-0.2 text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 rounded">
-                              Verified
+              return (
+                <Card key={app._id} className="p-5 space-y-4">
+                  <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                    <div className="space-y-2 min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2.5">
+                        <h3 className="text-base font-bold text-slate-900 truncate">
+                          {job.title || 'Position'}
+                        </h3>
+                        {isQualified && (
+                          <span className="px-2 py-0.5 rounded text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-200">
+                            Shortlist Eligible ✓
+                          </span>
+                        )}
+                        <Badge variant={app.status}>
+                          {app.status.charAt(0).toUpperCase() + app.status.slice(1)}
+                        </Badge>
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-3 text-xs font-semibold text-slate-500">
+                        {job.postedBy?.company && (
+                          <span className="flex items-center gap-1.5 text-slate-700 font-bold">
+                            {job.postedBy.company}
+                          </span>
+                        )}
+                        {job.location && (
+                          <span>· {job.location}</span>
+                        )}
+                        {app.appliedAt && (
+                          <span>· Applied {new Date(app.appliedAt).toLocaleDateString()}</span>
+                        )}
+                      </div>
+
+                      {/* Multiple Assessments Status Breakdown */}
+                      <div className="flex flex-wrap items-center gap-2 pt-1 text-xs">
+                        <span className="px-2.5 py-0.5 rounded-md bg-indigo-50 text-indigo-900 font-bold border border-indigo-100 text-[11px]">
+                          Required Assessments: {assessments.length || 1} Module(s)
+                        </span>
+
+                        {assessments.map((aModule, aIdx) => {
+                          const mId = String(aModule._id || aModule.id || aIdx);
+                          const resultEntry = results.find(r => String(r.assessmentId) === mId);
+                          const isModulePassed = resultEntry?.passed;
+
+                          return (
+                            <span
+                              key={aIdx}
+                              className={`px-2.5 py-0.5 rounded-md font-bold text-[11px] border ${
+                                resultEntry
+                                  ? isModulePassed
+                                    ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                                    : 'bg-rose-50 text-rose-800 border-rose-200'
+                                  : 'bg-amber-50 text-amber-800 border-amber-200'
+                              }`}
+                            >
+                              {aModule.skill || `Round ${aIdx + 1}`}: {resultEntry ? `${resultEntry.score}% (${isModulePassed ? 'Passed ✓' : 'Failed ✗'})` : 'Pending ⚠️'}
                             </span>
-                          )}
-                        </span>
-                      )}
-                      {app.job?.location && (
-                        <span className="flex items-center gap-1">
-                          <svg className="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                          </svg>
-                          {app.job.location}
-                        </span>
-                      )}
-                      {app.appliedAt && (
-                        <span>Applied {new Date(app.appliedAt).toLocaleDateString()}</span>
-                      )}
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Right Gauge & Assessment Button */}
+                    <div className="flex flex-col sm:flex-row items-center gap-4 shrink-0">
+                      <div className="w-full sm:w-44 bg-slate-50 p-2.5 rounded-xl border border-slate-200/80">
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Match Compatibility</p>
+                        <ProgressBar value={app.matchScore} size="sm" />
+                      </div>
+
+                      <Button
+                        size="sm"
+                        onClick={() => setAssessmentJob({ id: job._id, title: job.title, assessments: job.assessments, assessment: job.assessment })}
+                        className={`font-bold text-xs shrink-0 ${
+                          allPassed 
+                            ? 'bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100' 
+                            : results.length > 0
+                              ? 'bg-slate-100 text-slate-800 border border-slate-200 hover:bg-slate-200'
+                              : 'bg-indigo-600 hover:bg-indigo-700 text-white'
+                        }`}
+                      >
+                        {allPassed ? '✓ Assessments Completed' : results.length > 0 ? 'View Scorecard' : 'Take Skill Assessments →'}
+                      </Button>
                     </div>
                   </div>
-
-                  {/* Match score bar */}
-                  <div className="w-full sm:w-48 bg-slate-50 p-3 rounded-xl border border-slate-100">
-                    <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Match Compatibility</p>
-                    <ProgressBar value={app.matchScore} size="sm" />
-                  </div>
-                </div>
-              </Card>
-            ))}
+                </Card>
+              );
+            })}
           </div>
         )}
       </div>

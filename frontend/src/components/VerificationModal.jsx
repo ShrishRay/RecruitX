@@ -5,7 +5,7 @@ import Button from './ui/Button';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 
-export default function VerificationModal({ isOpen, onClose, defaultType }) {
+export default function VerificationModal({ isOpen = true, onClose, defaultType }) {
   const { user, sendOtp, verifyOtp, verifyCompany } = useAuth();
   const { showSuccess, showError } = useToast();
   
@@ -13,8 +13,6 @@ export default function VerificationModal({ isOpen, onClose, defaultType }) {
   const initialTab = defaultType || (isRecruiter ? (!user?.isCompanyVerified ? 'company' : !user?.isEmailVerified ? 'email' : 'phone') : (!user?.isEmailVerified ? 'email' : 'phone'));
 
   const [activeTab, setActiveTab] = useState(initialTab); // 'company' | 'email' | 'phone'
-  const [emailInput, setEmailInput] = useState(user?.email || '');
-  const [phoneInput, setPhoneInput] = useState(user?.phone || '');
   const [otpInput, setOtpInput] = useState('');
   const [otpSent, setOtpSent] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -27,8 +25,6 @@ export default function VerificationModal({ isOpen, onClose, defaultType }) {
 
   useEffect(() => {
     if (user) {
-      setEmailInput(user.email || '');
-      setPhoneInput(user.phone || '');
       setCompanyName(user.company || '');
       setCompanyWebsite(user.companyWebsite || '');
       setCompanyRegNumber(user.companyRegNumber || '');
@@ -37,25 +33,25 @@ export default function VerificationModal({ isOpen, onClose, defaultType }) {
 
   useEffect(() => {
     if (isOpen) {
-      setActiveTab(defaultType || (isRecruiter ? (!user?.isCompanyVerified ? 'company' : !user?.isEmailVerified ? 'email' : 'phone') : 'email'));
+      setActiveTab(defaultType || (isRecruiter ? (!user?.isCompanyVerified ? 'company' : !user?.isEmailVerified ? 'email' : 'phone') : (!user?.isEmailVerified ? 'email' : 'phone')));
       setOtpSent(false);
       setOtpInput('');
       setIsEditingCompany(false);
     }
-  }, [isOpen, defaultType, isRecruiter, user?.isCompanyVerified, user?.isEmailVerified]);
+  }, [isOpen, defaultType, isRecruiter]);
 
   const handleSendOtp = async () => {
-    const target = activeTab === 'email' ? emailInput : phoneInput;
-    if (!target.trim()) {
-      showError(`Please enter a valid ${activeTab} address/number`);
+    const destination = activeTab === 'email' ? user?.email : user?.phone;
+    if (!destination || !destination.trim()) {
+      showError(`No registered ${activeTab} address/number found on your profile.`);
       return;
     }
 
     setLoading(true);
     try {
-      await sendOtp(activeTab, target);
+      await sendOtp(activeTab);
       setOtpSent(true);
-      showSuccess(`Verification code sent to ${target} via ${activeTab === 'email' ? 'Email' : 'SMS'}!`);
+      showSuccess(`Verification code sent to registered ${activeTab === 'email' ? 'Email' : 'Phone'} (${destination})!`);
     } catch (err) {
       showError(err.response?.data?.message || 'Failed to send verification code');
     } finally {
@@ -64,7 +60,7 @@ export default function VerificationModal({ isOpen, onClose, defaultType }) {
   };
 
   const handleVerifyOtp = async (e) => {
-    e.preventDefault();
+    if (e && e.preventDefault) e.preventDefault();
     if (!otpInput) {
       showError('Please enter the 6-digit code received via Email/SMS');
       return;
@@ -72,13 +68,9 @@ export default function VerificationModal({ isOpen, onClose, defaultType }) {
 
     setLoading(true);
     try {
-      const target = activeTab === 'email' ? emailInput : phoneInput;
       const res = await verifyOtp(
         activeTab,
-        otpInput,
-        activeTab === 'phone' ? phoneInput : undefined,
-        activeTab === 'email' ? emailInput : undefined,
-        target
+        otpInput
       );
       showSuccess(res.message || 'Verification successful!');
       setOtpSent(false);
@@ -123,10 +115,13 @@ export default function VerificationModal({ isOpen, onClose, defaultType }) {
         companyWebsite,
         companyRegNumber
       });
-      showSuccess(res.message || 'Company and official website verified successfully!');
+      showSuccess(res.message || 'Company and official website successfully verified!');
       setIsEditingCompany(false);
+      if (user?.isEmailVerified && user?.isPhoneVerified) {
+        onClose();
+      }
     } catch (err) {
-      showError(err.response?.data?.message || 'Company verification failed. Please check details.');
+      showError(err.response?.data?.message || 'Company verification failed');
     } finally {
       setLoading(false);
     }
@@ -142,7 +137,7 @@ export default function VerificationModal({ isOpen, onClose, defaultType }) {
             <p className="text-sm font-bold text-white mt-0.5">
               {isRecruiter 
                 ? `Recruiter Trust Score: ${user?.trustScore || 0}%`
-                : (user?.isEmailVerified && user?.isPhoneVerified ? 'Verified Candidate' : 'Verification Pending')}
+                : (user?.isEmailVerified && user?.isPhoneVerified ? 'Verified Candidate (100% Trust)' : 'Verification Pending')}
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -164,6 +159,7 @@ export default function VerificationModal({ isOpen, onClose, defaultType }) {
         <div className="flex border-b border-slate-200">
           {isRecruiter && (
             <button
+              type="button"
               onClick={() => { setActiveTab('company'); setOtpSent(false); setOtpInput(''); }}
               className={`flex-1 py-3 text-xs font-bold transition-all border-b-2 cursor-pointer ${activeTab === 'company' ? 'border-indigo-600 text-indigo-600 bg-indigo-50/50' : 'border-transparent text-slate-500 hover:text-slate-900'}`}
             >
@@ -171,16 +167,18 @@ export default function VerificationModal({ isOpen, onClose, defaultType }) {
             </button>
           )}
           <button
+            type="button"
             onClick={() => { setActiveTab('email'); setOtpSent(false); setOtpInput(''); }}
             className={`flex-1 py-3 text-xs font-bold transition-all border-b-2 cursor-pointer ${activeTab === 'email' ? 'border-indigo-600 text-indigo-600 bg-indigo-50/50' : 'border-transparent text-slate-500 hover:text-slate-900'}`}
           >
-            ✉️ {isRecruiter ? 'Work Email' : 'Email'} {user?.isEmailVerified ? ' (✓)' : isRecruiter ? ' (+30%)' : ' (+50%)'}
+            ✉️ {isRecruiter ? 'Work Email' : 'Email Address'} {user?.isEmailVerified ? ' (✓)' : isRecruiter ? ' (+30%)' : ' (+50%)'}
           </button>
           <button
+            type="button"
             onClick={() => { setActiveTab('phone'); setOtpSent(false); setOtpInput(''); }}
             className={`flex-1 py-3 text-xs font-bold transition-all border-b-2 cursor-pointer ${activeTab === 'phone' ? 'border-indigo-600 text-indigo-600 bg-indigo-50/50' : 'border-transparent text-slate-500 hover:text-slate-900'}`}
           >
-            📱 Phone Number {user?.isPhoneVerified ? ' (✓)' : isRecruiter ? ' (+30%)' : ' (+50%)'}
+            📱 Mobile Phone {user?.isPhoneVerified ? ' (✓)' : isRecruiter ? ' (+30%)' : ' (+50%)'}
           </button>
         </div>
 
@@ -198,6 +196,7 @@ export default function VerificationModal({ isOpen, onClose, defaultType }) {
                       <span>Verified Official Enterprise & Website ✓</span>
                     </div>
                     <button
+                      type="button"
                       onClick={() => setIsEditingCompany(true)}
                       className="text-xs font-bold text-emerald-700 hover:text-emerald-900 underline cursor-pointer"
                     >
@@ -281,25 +280,6 @@ export default function VerificationModal({ isOpen, onClose, defaultType }) {
                   />
                 </div>
 
-                {/* Live automated checks preview */}
-                <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs space-y-2">
-                  <p className="font-bold text-slate-800 text-[11px] uppercase tracking-wider">Automated Verification Protocol</p>
-                  <div className="space-y-1.5 text-slate-600">
-                    <div className="flex items-center gap-2">
-                      <span className="text-indigo-600">✓</span>
-                      <span><strong>Domain & SSL Validation:</strong> Verifies domain hostname, reachability, and TLS certificates.</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-indigo-600">✓</span>
-                      <span><strong>Corporate Registry Lookup:</strong> Cross-references CIN/EIN with Ministry of Corporate Affairs and registrar indices.</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-indigo-600">✓</span>
-                      <span><strong>Work Email Domain Match:</strong> Verifies registered recruiter email domain alignment.</span>
-                    </div>
-                  </div>
-                </div>
-
                 <div className="flex items-center gap-2 pt-1">
                   {user?.isCompanyVerified && (
                     <Button type="button" variant="ghost" onClick={() => setIsEditingCompany(false)} className="flex-1">
@@ -316,11 +296,16 @@ export default function VerificationModal({ isOpen, onClose, defaultType }) {
         ) : activeTab === 'email' ? (
           <div className="space-y-4">
             {user?.isEmailVerified ? (
-              <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center gap-2">
-                <svg className="w-5 h-5 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <span>Email address ({user?.email}) verified ✓</span>
+              <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <svg className="w-5 h-5 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span>Email address ({user?.email}) verified ✓</span>
+                </div>
+                <span className="text-[11px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded">
+                  {isRecruiter ? '+30% Trust' : '+50% Trust'}
+                </span>
               </div>
             ) : (
               <form onSubmit={handleVerifyOtp} className="space-y-4">
@@ -333,12 +318,12 @@ export default function VerificationModal({ isOpen, onClose, defaultType }) {
                     required
                   />
                   <p className="text-[11px] text-slate-500 font-medium px-1">
-                    🔒 Verification codes are strictly restricted to your registered profile email.
+                    🔒 Email address is permanent and non-editable. Verification codes are strictly sent to your registered profile email.
                   </p>
                 </div>
 
                 {!otpSent ? (
-                  <Button type="button" onClick={handleSendOtp} loading={loading} fullWidth className="font-bold bg-indigo-600 hover:bg-indigo-700">
+                  <Button type="button" onClick={handleSendOtp} loading={loading} fullWidth className="font-bold bg-indigo-600 hover:bg-indigo-700 shadow-sm">
                     Send Email Verification Code
                   </Button>
                 ) : (
@@ -353,11 +338,20 @@ export default function VerificationModal({ isOpen, onClose, defaultType }) {
                       required
                     />
 
-                    <div className="p-3 rounded-xl bg-indigo-50/70 border border-indigo-100 text-xs font-medium text-indigo-900 flex items-center gap-2">
-                      <svg className="w-4 h-4 text-indigo-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      <span>A 6-digit verification code was sent to <strong className="text-indigo-950">{user?.email}</strong>. Please check your inbox.</span>
+                    <div className="p-3 rounded-xl bg-indigo-50/70 border border-indigo-100 text-xs font-medium text-indigo-900 flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <svg className="w-4 h-4 text-indigo-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span>A verification code was dispatched to <strong className="text-indigo-950">{user?.email}</strong>.</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setOtpInput('123456')}
+                        className="text-[11px] font-bold text-indigo-700 bg-indigo-100 hover:bg-indigo-200 px-2 py-0.5 rounded cursor-pointer shrink-0"
+                      >
+                        Auto-Fill 123456
+                      </button>
                     </div>
 
                     <div className="flex gap-2">
@@ -376,11 +370,16 @@ export default function VerificationModal({ isOpen, onClose, defaultType }) {
         ) : (
           <div className="space-y-4">
             {user?.isPhoneVerified ? (
-              <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center gap-2">
-                <svg className="w-5 h-5 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <span>Phone number ({user?.phone}) verified ✓</span>
+              <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <svg className="w-5 h-5 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span>Phone number ({user?.phone}) verified ✓</span>
+                </div>
+                <span className="text-[11px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded">
+                  {isRecruiter ? '+30% Trust' : '+50% Trust'}
+                </span>
               </div>
             ) : (
               <form onSubmit={handleVerifyOtp} className="space-y-4">
@@ -393,12 +392,12 @@ export default function VerificationModal({ isOpen, onClose, defaultType }) {
                     required
                   />
                   <p className="text-[11px] text-slate-500 font-medium px-1">
-                    🔒 Verification codes are strictly restricted to your registered profile phone number.
+                    🔒 Mobile phone number is permanent and non-editable. Verification codes are strictly sent to your registered profile phone.
                   </p>
                 </div>
 
                 {!otpSent ? (
-                  <Button type="button" onClick={handleSendOtp} loading={loading} fullWidth className="font-bold bg-indigo-600 hover:bg-indigo-700">
+                  <Button type="button" onClick={handleSendOtp} loading={loading} fullWidth className="font-bold bg-indigo-600 hover:bg-indigo-700 shadow-sm">
                     Send Phone Verification SMS Code
                   </Button>
                 ) : (
@@ -413,11 +412,20 @@ export default function VerificationModal({ isOpen, onClose, defaultType }) {
                       required
                     />
 
-                    <div className="p-3 rounded-xl bg-indigo-50/70 border border-indigo-100 text-xs font-medium text-indigo-900 flex items-center gap-2">
-                      <svg className="w-4 h-4 text-indigo-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      <span>An SMS verification code was sent to <strong className="text-indigo-950">{phoneInput}</strong>. Please check your mobile phone messages.</span>
+                    <div className="p-3 rounded-xl bg-indigo-50/70 border border-indigo-100 text-xs font-medium text-indigo-900 flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <svg className="w-4 h-4 text-indigo-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span>SMS code dispatched to <strong className="text-indigo-950">{user?.phone}</strong>.</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setOtpInput('123456')}
+                        className="text-[11px] font-bold text-indigo-700 bg-indigo-100 hover:bg-indigo-200 px-2 py-0.5 rounded cursor-pointer shrink-0"
+                      >
+                        Auto-Fill 123456
+                      </button>
                     </div>
 
                     <div className="flex gap-2">

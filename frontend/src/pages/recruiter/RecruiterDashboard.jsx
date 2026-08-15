@@ -38,14 +38,20 @@ export default function RecruiterDashboard() {
         fetchedJobs.map(async (job) => {
           try {
             const appRes = await api.get(`/applications/job/${job._id}`);
-            const apps = appRes.data.applications || [];
+            const apps = appRes.data.allApplications || appRes.data.applications || [];
+            const total = appRes.data.totalApplicants !== undefined ? appRes.data.totalApplicants : apps.length;
+            const qualified = appRes.data.qualifiedCount !== undefined ? appRes.data.qualifiedCount : apps.filter(a => a.isShortlistEligible).length;
+            const shortlisted = apps.filter(a => a.status === 'shortlisted').length;
+            const rejected = apps.filter(a => a.status === 'rejected').length;
+
             stats[job._id] = {
-              total: apps.length,
-              shortlisted: apps.filter(a => a.status === 'shortlisted').length,
-              rejected: apps.filter(a => a.status === 'rejected').length,
+              total,
+              qualified,
+              shortlisted,
+              rejected,
             };
           } catch {
-            stats[job._id] = { total: 0, shortlisted: 0, rejected: 0 };
+            stats[job._id] = { total: 0, qualified: 0, shortlisted: 0, rejected: 0 };
           }
         })
       );
@@ -75,6 +81,7 @@ export default function RecruiterDashboard() {
   };
 
   const totalApplicants = Object.values(jobStats).reduce((sum, s) => sum + s.total, 0);
+  const totalQualified = Object.values(jobStats).reduce((sum, s) => sum + (s.qualified || 0), 0);
   const totalShortlisted = Object.values(jobStats).reduce((sum, s) => sum + s.shortlisted, 0);
 
   if (loading) {
@@ -89,13 +96,13 @@ export default function RecruiterDashboard() {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6 animate-fade-in pb-16">
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Recruiter Dashboard</h1>
           <p className="text-sm font-medium text-slate-500 mt-1">
-            Manage your open postings and track candidate applicant leaderboards.
+            Manage your open postings, track live applicant metrics, and shortlist verified talent.
           </p>
         </div>
         <Link to="/recruiter/post-job">
@@ -103,7 +110,7 @@ export default function RecruiterDashboard() {
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
             </svg>
-            Post New Job
+            Post New Job & Assessment
           </Button>
         </Link>
       </div>
@@ -139,7 +146,7 @@ export default function RecruiterDashboard() {
                     : 'bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100/70'
                 }`}
               >
-                <span>🏢 Company & Website: {user?.isCompanyVerified ? 'Verified (+40%) ✓' : 'Pending (+40%) ✗'}</span>
+                <span>🏢 Company CIN/EIN: {user?.isCompanyVerified ? 'Verified (+40%) ✓' : 'Pending (+40%) ✗'}</span>
               </button>
 
               <button
@@ -204,12 +211,13 @@ export default function RecruiterDashboard() {
         </div>
       </Card>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      {/* Stats Cards (4 Metrics) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           { label: 'Active Job Postings', value: jobs.length, color: 'text-indigo-600', icon: '📋' },
           { label: 'Total Applicants', value: totalApplicants, color: 'text-blue-600', icon: '👥' },
-          { label: 'Shortlisted Talent', value: totalShortlisted, color: 'text-emerald-600', icon: '⭐' },
+          { label: 'Shortlist Qualified', value: totalQualified, color: 'text-purple-600', icon: '⭐' },
+          { label: 'Shortlisted Talent', value: totalShortlisted, color: 'text-emerald-600', icon: '🎯' },
         ].map((stat) => (
           <Card key={stat.label} hover={false} className="p-5">
             <div className="flex items-center justify-between">
@@ -243,10 +251,10 @@ export default function RecruiterDashboard() {
         ) : (
           <div className="space-y-3 stagger-children">
             {jobs.map((job) => {
-              const stats = jobStats[job._id] || { total: 0, shortlisted: 0, rejected: 0 };
+              const stats = jobStats[job._id] || { total: 0, qualified: 0, shortlisted: 0, rejected: 0 };
 
               return (
-                <Card key={job._id} className="p-5">
+                <Card key={job._id} className="p-5 hover:border-slate-300 transition-all">
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div className="space-y-1.5 min-w-0 flex-1">
                       <h3 className="text-base font-bold text-slate-900 truncate">{job.title}</h3>
@@ -260,6 +268,9 @@ export default function RecruiterDashboard() {
                         </span>
                         <span>{job.experienceRequired}+ yrs experience</span>
                         <span>Posted {new Date(job.createdAt).toLocaleDateString()}</span>
+                        <span className="px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-800 font-bold border border-indigo-100">
+                          📝 Assessment Threshold: {job.assessment?.passingThreshold || 60}%
+                        </span>
                       </div>
 
                       {/* Required Skills */}
@@ -273,15 +284,19 @@ export default function RecruiterDashboard() {
                     </div>
 
                     {/* Stats & Actions */}
-                    <div className="flex items-center justify-between md:justify-end gap-6 pt-3 md:pt-0 border-t md:border-t-0 border-slate-100">
-                      <div className="flex items-center gap-4 text-center">
-                        <div className="px-3">
-                          <p className="text-base font-extrabold text-slate-900">{stats.total}</p>
-                          <p className="text-[11px] font-semibold text-slate-400">Applicants</p>
+                    <div className="flex items-center justify-between md:justify-end gap-5 pt-3 md:pt-0 border-t md:border-t-0 border-slate-100">
+                      <div className="flex items-center gap-3 text-center">
+                        <div className="px-2.5">
+                          <p className="text-base font-black text-slate-900">{stats.total}</p>
+                          <p className="text-[10px] font-bold uppercase text-slate-400">Applicants</p>
                         </div>
-                        <div className="px-3 border-l border-slate-200">
-                          <p className="text-base font-extrabold text-emerald-600">{stats.shortlisted}</p>
-                          <p className="text-[11px] font-semibold text-slate-400">Shortlisted</p>
+                        <div className="px-2.5 border-l border-slate-200">
+                          <p className="text-base font-black text-purple-700">{stats.qualified}</p>
+                          <p className="text-[10px] font-bold uppercase text-purple-600">⭐ Qualified</p>
+                        </div>
+                        <div className="px-2.5 border-l border-slate-200">
+                          <p className="text-base font-black text-emerald-600">{stats.shortlisted}</p>
+                          <p className="text-[10px] font-bold uppercase text-slate-400">Shortlisted</p>
                         </div>
                       </div>
 
@@ -320,19 +335,21 @@ export default function RecruiterDashboard() {
         isOpen={!!deletingJobId}
         onClose={() => setDeletingJobId(null)}
         onConfirm={confirmDelete}
-        title="Delete Job Posting?"
-        message="Are you sure you want to delete this job posting? All candidate applications associated with this job will also be removed."
-        confirmText="Delete Posting"
-        confirmVariant="danger"
+        title="Delete Job Posting"
+        message="Are you sure you want to delete this job posting? This action cannot be undone."
+        confirmText="Delete"
+        variant="danger"
         loading={isDeleting}
       />
 
-      {/* Identity & Company Verification Modal */}
-      <VerificationModal
-        isOpen={showVerificationModal}
-        defaultType={modalDefaultTab}
-        onClose={() => setShowVerificationModal(false)}
-      />
+      {/* Recruiter Verification Modal */}
+      {showVerificationModal && (
+        <VerificationModal
+          isOpen={showVerificationModal}
+          onClose={() => setShowVerificationModal(false)}
+          defaultTab={modalDefaultTab}
+        />
+      )}
     </div>
   );
 }

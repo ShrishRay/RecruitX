@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
-const { connectDB } = require('./config/db');
+const { connectDB, getDBStatus } = require('./config/db');
 
 // Load environment variables
 dotenv.config();
@@ -29,7 +29,17 @@ app.use('/api/match', matchRoutes);
 
 // ── Health check ─────────────────────────────────────────
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  const { OPEN_SOURCE_MODEL } = require('./utils/llmResumeValidator');
+  res.json({ 
+    status: 'ok', 
+    timestamp: new Date().toISOString(),
+    database: getDBStatus(),
+    llmEngine: {
+      model: OPEN_SOURCE_MODEL || 'Qwen/Qwen2.5-7B-Instruct',
+      type: 'Open-Source Large Language Model',
+      corroborationPipeline: 'Active'
+    }
+  });
 });
 
 // ── Error handling middleware ────────────────────────────
@@ -42,23 +52,25 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 5000;
 
 const startServer = async () => {
-  await connectDB();
-
-  // Auto-seed data on startup in development
-  if (process.env.NODE_ENV === 'development') {
-    try {
-      const { seedDatabase } = require('./utils/seedData');
-      await seedDatabase();
-      console.log('✅ Sample data seeded');
-    } catch (err) {
-      console.log('⚠️  Seed skipped or already seeded:', err.message);
-    }
-  }
-
-  app.listen(PORT, () => {
+  const server = app.listen(PORT, () => {
     console.log(`\n🚀 RecruitX API running on http://localhost:${PORT}`);
     console.log(`📋 Health check: http://localhost:${PORT}/api/health\n`);
   });
+
+  try {
+    await connectDB();
+    if (process.env.NODE_ENV === 'development') {
+      try {
+        const { seedDatabase } = require('./utils/seedData');
+        await seedDatabase();
+        console.log('✅ Sample data seeded');
+      } catch (err) {
+        console.log('⚠️  Seed skipped or already seeded:', err.message);
+      }
+    }
+  } catch (err) {
+    console.error('Database connection error on startup:', err);
+  }
 };
 
 startServer();

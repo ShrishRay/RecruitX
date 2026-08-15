@@ -49,7 +49,19 @@ const formatUserResponse = (user) => {
     photoURL: user.photoURL || '',
     isEmailVerified: !!user.isEmailVerified,
     isPhoneVerified: !!user.isPhoneVerified,
-    trustScore
+    trustScore,
+    // Candidate profile attributes
+    skills: user.skills || [],
+    experience: user.experience || 0,
+    preferredRole: user.preferredRole || '',
+    preferredLocation: user.preferredLocation || '',
+    education: user.education || { degree: '', institution: '', year: '' },
+    projects: user.projects || [],
+    isResumeVerified: !!user.isResumeVerified,
+    resumeFileName: user.resumeFileName || '',
+    warningsCount: user.warningsCount || 0,
+    accountStatus: user.accountStatus || 'active',
+    isSuspended: !!user.isSuspended
   };
 };
 
@@ -99,7 +111,11 @@ exports.googleLogin = async (req, res) => {
  */
 exports.signup = async (req, res) => {
   try {
-    const { name, email, password, phone, role, company, companyWebsite, companyRegNumber } = req.body;
+    const { 
+      name, email, password, phone, role, 
+      company, companyWebsite, companyRegNumber,
+      skills, experience, preferredRole, preferredLocation, education
+    } = req.body;
 
     if (!name || !email || !password || !phone || !role) {
       return res.status(400).json({ message: 'Please provide all required fields, including mobile phone number.' });
@@ -131,6 +147,24 @@ exports.signup = async (req, res) => {
       if (company) userData.company = company.trim();
       if (companyWebsite) userData.companyWebsite = companyWebsite.trim();
       if (companyRegNumber) userData.companyRegNumber = companyRegNumber.trim().toUpperCase();
+    } else if (role === 'candidate') {
+      if (Array.isArray(skills)) {
+        userData.skills = skills.filter(Boolean).map(s => String(s).trim());
+      } else if (typeof skills === 'string' && skills.trim()) {
+        userData.skills = skills.split(',').map(s => s.trim()).filter(Boolean);
+      } else {
+        userData.skills = [];
+      }
+      if (experience !== undefined) userData.experience = Number(experience) || 0;
+      if (preferredRole) userData.preferredRole = preferredRole.trim();
+      if (preferredLocation) userData.preferredLocation = preferredLocation.trim();
+      if (education && typeof education === 'object') {
+        userData.education = {
+          degree: education.degree ? education.degree.trim() : '',
+          institution: education.institution ? education.institution.trim() : '',
+          year: education.year ? Number(education.year) : undefined
+        };
+      }
     }
 
     const user = await User.create(userData);
@@ -295,10 +329,8 @@ exports.verifyOtp = async (req, res) => {
     const updates = {};
     if (type === 'email') {
       updates.isEmailVerified = true;
-      if (email || target) updates.email = email || target;
     } else if (type === 'phone') {
       updates.isPhoneVerified = true;
-      if (phone || target) updates.phone = phone || target;
     }
 
     const updatedUser = await User.findByIdAndUpdate(req.user._id, updates, { returnDocument: 'after' });
@@ -306,8 +338,10 @@ exports.verifyOtp = async (req, res) => {
     // Clean up OTP store
     delete otpStore[storeKey];
 
+    const confirmedDestination = type === 'email' ? updatedUser.email : updatedUser.phone;
+
     res.json({
-      message: `${type === 'email' ? 'Email' : 'Phone number'} (${target || phone || email || 'address'}) verified successfully!`,
+      message: `Registered ${type === 'email' ? 'Email' : 'Phone number'} (${confirmedDestination}) verified successfully!`,
       user: formatUserResponse(updatedUser)
     });
   } catch (error) {

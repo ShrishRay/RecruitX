@@ -4,8 +4,10 @@ node_modules/
 backend/node_modules/
 frontend/node_modules/
 .pnpm-store/
+.yarn/
+.yarn-cache/
 
-# ── Environment & Security (API Keys, JWT Secrets, Passwords) ────────────────
+# ── Environment & Security (Secrets, Tokens, Passwords) ─────────────────────
 .env
 .env.*
 *.env
@@ -15,13 +17,19 @@ frontend/.env
 .env.development.local
 .env.test.local
 .env.production.local
+# Explicitly keep example environment templates
+!.env.example
+!backend/.env.example
+!frontend/.env.example
 
 # ── Build & Distribution Outputs ─────────────────────────────────────────────
 dist/
 dist-ssr/
+frontend/dist/
 build/
 out/
 .vite/
+frontend/.vite/
 .cache/
 *.tsbuildinfo
 
@@ -34,15 +42,22 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-# ── Uploads & Temporary Files ─────────────────────────────────────────────────
+# ── Testing & Coverage Reports ───────────────────────────────────────────────
+coverage/
+*.lcov
+.nyc_output/
+
+# ── Uploads & Temporary Runtime Files ────────────────────────────────────────
 tmp/
 temp/
 backend/uploads/
 uploads/
 scratch/
 .gemini/
+.system_generated/
+artifacts/
 
-# ── Operating System Files ────────────────────────────────────────────────────
+# ── Operating System Artifacts ────────────────────────────────────────────────
 .DS_Store
 .DS_Store?
 ._*
@@ -51,9 +66,13 @@ scratch/
 ehthumbs.db
 Thumbs.db
 Desktop.ini
+$RECYCLE.BIN/
 
 # ── IDEs & Code Editors ───────────────────────────────────────────────────────
-.vscode/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
 !.vscode/extensions.json
 .idea/
 *.swp
@@ -62,3 +81,4 @@ Desktop.ini
 *.ntvs*
 *.njsproj
 *.sln
+.eslintcache

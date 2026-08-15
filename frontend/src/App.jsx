@@ -15,6 +15,7 @@ import DashboardLayout from './components/layout/DashboardLayout';
 import CandidateDashboard from './pages/candidate/CandidateDashboard';
 import ProfilePage from './pages/candidate/ProfilePage';
 import BrowseJobs from './pages/candidate/BrowseJobs';
+import MockTestPage from './pages/candidate/MockTestPage';
 
 // Recruiter Pages
 import RecruiterDashboard from './pages/recruiter/RecruiterDashboard';
@@ -83,6 +84,7 @@ export default function App() {
               <Route path="dashboard" element={<CandidateDashboard />} />
               <Route path="profile" element={<ProfilePage />} />
               <Route path="jobs" element={<BrowseJobs />} />
+              <Route path="mock-test" element={<MockTestPage />} />
               <Route index element={<Navigate to="dashboard" replace />} />
             </Route>
 
