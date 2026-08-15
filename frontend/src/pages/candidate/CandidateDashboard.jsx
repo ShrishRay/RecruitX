@@ -55,7 +55,7 @@ export default function CandidateDashboard() {
           </p>
         </div>
         <Link to="/candidate/jobs">
-          <Button size="md" className="font-bold">
+          <Button size="md" className="font-bold bg-indigo-600 hover:bg-indigo-700">
             Browse All Jobs
           </Button>
         </Link>
@@ -115,11 +115,16 @@ export default function CandidateDashboard() {
 
                     <div className="flex flex-wrap items-center gap-3 text-xs font-semibold text-slate-500">
                       {app.job?.postedBy?.company && (
-                        <span className="flex items-center gap-1 text-slate-700">
+                        <span className="flex items-center gap-1.5 text-slate-700">
                           <svg className="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                           </svg>
-                          {app.job.postedBy.company}
+                          <span className="font-bold text-slate-900">{app.job.postedBy.company}</span>
+                          {app.job.postedBy?.isCompanyVerified && (
+                            <span className="px-1.5 py-0.2 text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 rounded">
+                              Verified
+                            </span>
+                          )}
                         </span>
                       )}
                       {app.job?.location && (

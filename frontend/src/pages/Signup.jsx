@@ -16,6 +16,8 @@ export default function Signup() {
   const [password, setPassword] = useState('');
   const [role, setRole] = useState(searchParams.get('role') || 'candidate');
   const [company, setCompany] = useState('');
+  const [companyWebsite, setCompanyWebsite] = useState('');
+  const [companyRegNumber, setCompanyRegNumber] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -46,7 +48,16 @@ export default function Signup() {
 
     setLoading(true);
     try {
-      const user = await signup({ name, email, password, phone, role, company });
+      const user = await signup({ 
+        name, 
+        email, 
+        password, 
+        phone, 
+        role, 
+        company,
+        companyWebsite,
+        companyRegNumber
+      });
       showSuccess(`Account created! Welcome to RecruitX, ${user.name}`);
       navigate(user.role === 'candidate' ? '/candidate/profile' : '/recruiter/dashboard');
     } catch (err) {
@@ -114,7 +125,7 @@ export default function Signup() {
         <div className="relative z-10">
           <Link to="/" className="inline-flex items-center gap-2.5 text-white mb-12 group">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-600 flex items-center justify-center font-bold shadow-lg shadow-indigo-500/20 group-hover:scale-105 transition-transform">
-              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
             </div>
@@ -147,7 +158,7 @@ export default function Signup() {
           <div className="lg:hidden mb-6 text-center">
             <Link to="/" className="inline-flex items-center gap-2 text-slate-900">
               <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-600 text-white flex items-center justify-center font-bold">
-                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
               </div>
@@ -211,14 +222,30 @@ export default function Signup() {
             />
 
             {role === 'recruiter' && (
-              <Input
-                label="Company Name"
-                type="text"
-                value={company}
-                onChange={(e) => setCompany(e.target.value)}
-                placeholder="e.g. Acme Corp"
-                required
-              />
+              <div className="space-y-3 pt-1 pb-1 border-t border-b border-slate-100 my-2">
+                <Input
+                  label="Legal Company Name"
+                  type="text"
+                  value={company}
+                  onChange={(e) => setCompany(e.target.value)}
+                  placeholder="e.g. Acme Corp"
+                  required
+                />
+                <Input
+                  label="Official Company Website"
+                  type="text"
+                  value={companyWebsite}
+                  onChange={(e) => setCompanyWebsite(e.target.value)}
+                  placeholder="e.g. https://acme.com"
+                />
+                <Input
+                  label="Company Registration / CIN / Tax ID (Optional)"
+                  type="text"
+                  value={companyRegNumber}
+                  onChange={(e) => setCompanyRegNumber(e.target.value)}
+                  placeholder="e.g. CIN-U72200DL2018PTC334512"
+                />
+              </div>
             )}
 
             <div className="py-1">

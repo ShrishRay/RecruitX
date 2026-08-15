@@ -184,6 +184,9 @@ export default function BrowseJobs() {
           {filteredJobs.map((job) => {
             const matchScore = matches[job._id] || 0;
             const hasApplied = appliedJobs.has(job._id);
+            const isCompanyVerified = job.postedBy?.isCompanyVerified;
+            const companyWebsite = job.postedBy?.companyWebsite;
+            const trustScore = job.postedBy?.trustScore !== undefined ? job.postedBy.trustScore : 100;
 
             return (
               <Card key={job._id} className="p-5">
@@ -199,10 +202,31 @@ export default function BrowseJobs() {
                       <div className="min-w-0 flex-1">
                         <h3 className="text-base font-bold text-slate-900 truncate">{job.title}</h3>
                         <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-slate-500 mt-1">
-                          <span className="text-slate-800">{job.postedBy?.company || 'Company'}</span>
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80">
-                            🛡️ {job.postedBy?.trustScore !== undefined ? job.postedBy.trustScore : 100}% Trust Score
+                          <span className="text-slate-800 font-bold">{job.postedBy?.company || 'Company'}</span>
+                          
+                          {isCompanyVerified && companyWebsite && (
+                            <a
+                              href={companyWebsite}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 text-[11px] font-bold text-indigo-600 hover:text-indigo-800 hover:underline"
+                              title="Visit official company website"
+                            >
+                              <span>Official Site</span>
+                              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                              </svg>
+                            </a>
+                          )}
+
+                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold ${
+                            isCompanyVerified
+                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200/80'
+                              : 'bg-slate-100 text-slate-700 border border-slate-200'
+                          }`}>
+                            {isCompanyVerified ? '🛡️ Verified Enterprise' : '🛡️ Recruiter'} ({trustScore}% Trust)
                           </span>
+
                           <span>·</span>
                           <span>{job.location}</span>
                           {job.salary && (
@@ -250,7 +274,7 @@ export default function BrowseJobs() {
                           size="sm"
                           loading={applying === job._id}
                           onClick={() => handleApply(job._id)}
-                          className="font-bold"
+                          className="font-bold bg-indigo-600 hover:bg-indigo-700"
                         >
                           Apply Now
                         </Button>
@@ -273,8 +297,29 @@ export default function BrowseJobs() {
       >
         {selectedJob && (
           <div className="space-y-4">
-            <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-slate-500 pb-3 border-b border-slate-100">
-              <span className="text-slate-900 font-bold">{selectedJob.postedBy?.company}</span>
+            <div className="flex flex-wrap items-center gap-3 text-xs font-semibold text-slate-500 pb-3 border-b border-slate-100">
+              <span className="text-slate-900 font-bold text-sm">{selectedJob.postedBy?.company}</span>
+              
+              {selectedJob.postedBy?.companyWebsite && (
+                <a
+                  href={selectedJob.postedBy.companyWebsite}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-indigo-600 font-bold hover:underline inline-flex items-center gap-1"
+                >
+                  <span>{selectedJob.postedBy.companyWebsite}</span>
+                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                </a>
+              )}
+
+              {selectedJob.postedBy?.isCompanyVerified && (
+                <span className="px-2 py-0.5 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-md font-bold text-[11px]">
+                  🛡️ Verified Registration ({selectedJob.postedBy?.companyRegNumber || 'CIN-VERIFIED'})
+                </span>
+              )}
+
               <span>·</span>
               <span>{selectedJob.location}</span>
               {selectedJob.salary && (
@@ -321,7 +366,7 @@ export default function BrowseJobs() {
                     handleApply(selectedJob._id);
                     setSelectedJob(null);
                   }}
-                  className="font-bold"
+                  className="font-bold bg-indigo-600 hover:bg-indigo-700"
                 >
                   Submit Application
                 </Button>

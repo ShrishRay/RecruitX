@@ -21,6 +21,7 @@ export default function RecruiterDashboard() {
   const [deletingJobId, setDeletingJobId] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showVerificationModal, setShowVerificationModal] = useState(false);
+  const [modalDefaultTab, setModalDefaultTab] = useState('company');
 
   useEffect(() => {
     fetchJobs();
@@ -80,7 +81,12 @@ export default function RecruiterDashboard() {
     return <Spinner className="py-32" size="lg" />;
   }
 
-  const trustScore = user?.trustScore !== undefined ? user.trustScore : 100;
+  const trustScore = user?.trustScore !== undefined ? user.trustScore : 0;
+
+  const openVerification = (tab = 'company') => {
+    setModalDefaultTab(tab);
+    setShowVerificationModal(true);
+  };
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -93,7 +99,7 @@ export default function RecruiterDashboard() {
           </p>
         </div>
         <Link to="/recruiter/post-job">
-          <Button size="md" className="font-bold gap-2">
+          <Button size="md" className="font-bold gap-2 bg-indigo-600 hover:bg-indigo-700 shadow-md">
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
             </svg>
@@ -104,38 +110,97 @@ export default function RecruiterDashboard() {
 
       {/* Recruiter Trust Score Banner */}
       <Card hover={false} className="p-5 border-l-4 border-l-emerald-500 bg-gradient-to-r from-emerald-50/40 via-indigo-50/20 to-slate-50">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2">
+        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+          <div className="space-y-2 max-w-3xl">
+            <div className="flex flex-wrap items-center gap-2">
               <span className="text-lg">🛡️</span>
-              <h2 className="text-base font-bold text-slate-900">Recruiter Authenticity & Trust Score</h2>
+              <h2 className="text-base font-bold text-slate-900">Employer Authenticity & Recruiter Trust Score</h2>
               <span className={`px-2.5 py-0.5 rounded-full text-xs font-black ${trustScore === 100 ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 'bg-amber-100 text-amber-800 border border-amber-200'}`}>
                 {trustScore}% Trust Score
               </span>
+              {user?.isCompanyVerified && (
+                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-100 text-indigo-800 border border-indigo-200 flex items-center gap-1">
+                  <span>🏢 Verified Enterprise</span>
+                </span>
+              )}
             </div>
-            <p className="text-xs text-slate-600 mt-1">
-              Your trust score is displayed to candidates on your job postings. Verify both email and phone number to reach 100% Verified Employer status.
+
+            <p className="text-xs text-slate-600 leading-relaxed font-medium">
+              Your trust score is prominently displayed to job seekers on all your postings. Complete all 3 verification steps (Company Registration & Website, Work Email, and Mobile Phone) to unlock 100% Verified Employer status.
             </p>
-            <div className="flex items-center gap-3 mt-2 text-xs font-semibold">
-              <span className={user?.isEmailVerified ? 'text-emerald-700 font-bold' : 'text-slate-500'}>
-                Email Verified: {user?.isEmailVerified ? 'Yes (+50%) ✓' : 'No ✗'}
-              </span>
-              <span>·</span>
-              <span className={user?.isPhoneVerified ? 'text-emerald-700 font-bold' : 'text-slate-500'}>
-                Phone Verified: {user?.isPhoneVerified ? 'Yes (+50%) ✓' : 'No ✗'}
-              </span>
+
+            {/* 3 Pillars Status Badges */}
+            <div className="flex flex-wrap items-center gap-3 pt-1 text-xs font-semibold">
+              <button
+                onClick={() => openVerification('company')}
+                className={`flex items-center gap-1 px-2.5 py-1 rounded-lg border transition-all cursor-pointer ${
+                  user?.isCompanyVerified 
+                    ? 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100/70' 
+                    : 'bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100/70'
+                }`}
+              >
+                <span>🏢 Company & Website: {user?.isCompanyVerified ? 'Verified (+40%) ✓' : 'Pending (+40%) ✗'}</span>
+              </button>
+
+              <button
+                onClick={() => openVerification('email')}
+                className={`flex items-center gap-1 px-2.5 py-1 rounded-lg border transition-all cursor-pointer ${
+                  user?.isEmailVerified 
+                    ? 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100/70' 
+                    : 'bg-rose-50 text-rose-800 border-rose-200 hover:bg-rose-100/70'
+                }`}
+              >
+                <span>✉️ Work Email: {user?.isEmailVerified ? 'Verified (+30%) ✓' : 'Pending (+30%) ✗'}</span>
+              </button>
+
+              <button
+                onClick={() => openVerification('phone')}
+                className={`flex items-center gap-1 px-2.5 py-1 rounded-lg border transition-all cursor-pointer ${
+                  user?.isPhoneVerified 
+                    ? 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100/70' 
+                    : 'bg-rose-50 text-rose-800 border-rose-200 hover:bg-rose-100/70'
+                }`}
+              >
+                <span>📱 Phone: {user?.isPhoneVerified ? 'Verified (+30%) ✓' : 'Pending (+30%) ✗'}</span>
+              </button>
             </div>
+
+            {/* Verified Company Details snippet if verified */}
+            {user?.isCompanyVerified && user?.companyWebsite && (
+              <div className="flex flex-wrap items-center gap-3 pt-1 text-[11px] text-slate-500 font-semibold">
+                <span className="text-slate-700">Official Web:</span>
+                <a
+                  href={user.companyWebsite}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-indigo-600 font-bold hover:underline inline-flex items-center gap-1"
+                >
+                  {user.companyWebsite}
+                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                </a>
+                {user.companyRegNumber && (
+                  <>
+                    <span>·</span>
+                    <span className="font-mono text-slate-700">Reg ID: {user.companyRegNumber}</span>
+                  </>
+                )}
+              </div>
+            )}
           </div>
 
-          <Button
-            type="button"
-            size="sm"
-            variant="secondary"
-            onClick={() => setShowVerificationModal(true)}
-            className="font-bold shrink-0"
-          >
-            {trustScore === 100 ? 'View Verification Badges' : 'Boost Trust Score'}
-          </Button>
+          <div className="shrink-0 pt-2 lg:pt-0">
+            <Button
+              type="button"
+              size="sm"
+              variant={trustScore === 100 ? 'secondary' : 'primary'}
+              onClick={() => openVerification(!user?.isCompanyVerified ? 'company' : !user?.isEmailVerified ? 'email' : 'phone')}
+              className="font-bold shadow-xs"
+            >
+              {trustScore === 100 ? 'View Verification Badges' : 'Complete Verification'}
+            </Button>
+          </div>
         </div>
       </Card>
 
@@ -262,9 +327,10 @@ export default function RecruiterDashboard() {
         loading={isDeleting}
       />
 
-      {/* Identity Verification Modal */}
+      {/* Identity & Company Verification Modal */}
       <VerificationModal
         isOpen={showVerificationModal}
+        defaultType={modalDefaultTab}
         onClose={() => setShowVerificationModal(false)}
       />
     </div>

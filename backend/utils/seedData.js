@@ -16,9 +16,72 @@ async function seedDatabase() {
   console.log('🌱 Seeding database with sample data...');
 
   // ── Create Recruiters ─────────────────────────────────
-  const r1 = await User.create({ name: 'Sarah Chen', email: 'sarah@techcorp.com', password: 'password123', role: 'recruiter', company: 'TechCorp Solutions', phone: '+1 (555) 019-2834', isEmailVerified: true, isPhoneVerified: true, trustScore: 100 });
-  const r2 = await User.create({ name: 'Marcus Williams', email: 'marcus@innovate.io', password: 'password123', role: 'recruiter', company: 'Innovate.io', phone: '+1 (555) 349-8120', isEmailVerified: true, isPhoneVerified: false, trustScore: 50 });
-  const r3 = await User.create({ name: 'Priya Sharma', email: 'priya@dataflow.ai', password: 'password123', role: 'recruiter', company: 'DataFlow AI', phone: '+1 (555) 981-4321', isEmailVerified: true, isPhoneVerified: true, trustScore: 100 });
+  const r1 = await User.create({ 
+    name: 'Sarah Chen', 
+    email: 'sarah@techcorp.com', 
+    password: 'password123', 
+    role: 'recruiter', 
+    company: 'TechCorp Solutions', 
+    companyWebsite: 'https://techcorp.com',
+    companyRegNumber: 'CIN-U72200DL2018PTC334512',
+    phone: '+1 (555) 019-2834', 
+    isEmailVerified: true, 
+    isPhoneVerified: true, 
+    isCompanyVerified: true,
+    companyVerifiedAt: new Date().toISOString(),
+    companyVerificationDetails: {
+      registeredEntityName: 'TechCorp Solutions Inc.',
+      officialWebsite: 'https://techcorp.com',
+      domain: 'techcorp.com',
+      registrationId: 'CIN-U72200DL2018PTC334512',
+      registryStatus: 'Active & In Good Standing',
+      sslVerified: true,
+      emailDomainMatch: true,
+      verifiedRegistry: 'MCA (Ministry of Corporate Affairs)'
+    },
+    trustScore: 100 
+  });
+
+  const r2 = await User.create({ 
+    name: 'Marcus Williams', 
+    email: 'marcus@innovate.io', 
+    password: 'password123', 
+    role: 'recruiter', 
+    company: 'Innovate.io', 
+    companyWebsite: 'https://innovate.io',
+    companyRegNumber: 'US-EIN-83-2948102',
+    phone: '+1 (555) 349-8120', 
+    isEmailVerified: true, 
+    isPhoneVerified: false, 
+    isCompanyVerified: false,
+    trustScore: 30 
+  });
+
+  const r3 = await User.create({ 
+    name: 'Priya Sharma', 
+    email: 'priya@dataflow.ai', 
+    password: 'password123', 
+    role: 'recruiter', 
+    company: 'DataFlow AI', 
+    companyWebsite: 'https://dataflow.ai',
+    companyRegNumber: 'CIN-U72900KA2020PTC142980',
+    phone: '+1 (555) 981-4321', 
+    isEmailVerified: true, 
+    isPhoneVerified: true, 
+    isCompanyVerified: true,
+    companyVerifiedAt: new Date().toISOString(),
+    companyVerificationDetails: {
+      registeredEntityName: 'DataFlow AI Technologies Pvt Ltd',
+      officialWebsite: 'https://dataflow.ai',
+      domain: 'dataflow.ai',
+      registrationId: 'CIN-U72900KA2020PTC142980',
+      registryStatus: 'Active & In Good Standing',
+      sslVerified: true,
+      emailDomainMatch: true,
+      verifiedRegistry: 'MCA (Ministry of Corporate Affairs)'
+    },
+    trustScore: 100 
+  });
   const recruiters = [r1, r2, r3];
 
   // ── Create Candidates ─────────────────────────────────

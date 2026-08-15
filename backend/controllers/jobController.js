@@ -1,5 +1,7 @@
 const Job = require('../models/Job');
 
+const POPULATE_RECRUITER_FIELDS = 'name company companyWebsite companyRegNumber isCompanyVerified trustScore isEmailVerified isPhoneVerified';
+
 /**
  * POST /api/jobs
  */
@@ -37,11 +39,11 @@ exports.getJobs = async (req, res) => {
     let jobs;
     if (req.user.role === 'recruiter') {
       jobs = await Job.find({ postedBy: req.user._id })
-        .populate('postedBy', 'name company trustScore isEmailVerified isPhoneVerified')
+        .populate('postedBy', POPULATE_RECRUITER_FIELDS)
         .sort({ createdAt: -1 });
     } else {
       jobs = await Job.find({ isActive: true })
-        .populate('postedBy', 'name company trustScore isEmailVerified isPhoneVerified')
+        .populate('postedBy', POPULATE_RECRUITER_FIELDS)
         .sort({ createdAt: -1 });
     }
 
@@ -57,7 +59,7 @@ exports.getJobs = async (req, res) => {
 exports.getAllJobs = async (req, res) => {
   try {
     const jobs = await Job.find({ isActive: true })
-      .populate('postedBy', 'name company trustScore isEmailVerified isPhoneVerified')
+      .populate('postedBy', POPULATE_RECRUITER_FIELDS)
       .sort({ createdAt: -1 });
 
     res.json({ jobs });
@@ -72,7 +74,7 @@ exports.getAllJobs = async (req, res) => {
 exports.getJob = async (req, res) => {
   try {
     const job = await Job.findById(req.params.id)
-      .populate('postedBy', 'name company trustScore isEmailVerified isPhoneVerified');
+      .populate('postedBy', POPULATE_RECRUITER_FIELDS);
 
     if (!job) {
       return res.status(404).json({ message: 'Job not found' });
