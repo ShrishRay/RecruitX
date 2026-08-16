@@ -15,12 +15,19 @@ It also aims to reduce repetitive recruitment work through automated communicati
 ##  Key Features
 
 **AI Resume Parsing** – Extract skills, experience, education, projects and certifications.
+
 **Skill-wise Matching** – Compare candidates based on experience in the skills actually required for the job.
+
 **Candidate Ranking** – Automatically rank applicants using a Match Score.
+
 **Explainable Matching** – Show why a candidate is a strong or weak match.
+
 **AI Email Generation** – Generate personalized shortlist and interview emails.
+
 **Interview Scheduling** – Streamline the process of scheduling interviews.
+
 **GitHub Integration** – Allow recruiters to review candidate projects and technical portfolios.
+
 **Bias-aware Screening** – Focus evaluation on job-relevant information and flag potential bias patterns.
 
 ---
@@ -28,13 +35,22 @@ It also aims to reduce repetitive recruitment work through automated communicati
 ## Tech Stack
 
 **Frontend:** React.js, React Native
+
 **Backend:** Node.js, Express.js
+
 **Database:** MongoDB
-**Qwen 2.5–7B:** AI-powered resume verification & mock test generation​
-**Authentication:** Google SMTP, Email Authentication, 2FA, Phone Verification ​
+
+**Qwen 2.5–7B:** AI-powered resume verification & mock test generation
+​
+**Authentication:** Google SMTP, Email Authentication, 2FA, Phone Verification
+ ​
 **Interview Automation:** Google Calendar API, Automated Interview Scheduling
-**AI Applications:** Resume Verification, Mock Test & Interview Question Generation ​
-**Architecture:** MERN Stack​
+
+**AI Applications:** Resume Verification, Mock Test & Interview Question Generation
+
+ ​
+**Architecture:** MERN Stack
+​
 
 ---
 
