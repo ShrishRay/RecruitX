@@ -67,7 +67,7 @@ Shortlist → Email → Interview
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/YOUR-USERNAME/RecruitX.git
+git clone https://github.com/ShirishRay/RecruitX.git
 cd RecruitX
 ```
 
@@ -101,8 +101,9 @@ npm run dev
 
 # Frontend
 npm run dev
-```
-
+#Both together
+cd RecruitX
+npm run dev
 ---
 
 ##  Why RecruitX?
