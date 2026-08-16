@@ -1,6 +1,6 @@
 # RecruitX – AI Recruitment Screening Agent
 
-> Hire smarter. Find the right fit, faster.**
+> **Hire smarter. Find the right fit, faster.**
 
 ##  Overview
 
@@ -105,9 +105,34 @@ Create a `.env` file in the backend and add your required credentials:
 MONGODB_URI=your_mongodb_uri
 AI_API_KEY=your_ai_api_key
 JWT_SECRET=your_jwt_secret
+
+# ── Google Calendar & Google Meet API Integration ──────────────────────────
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+GOOGLE_REFRESH_TOKEN=
+GOOGLE_REDIRECT_URI=
+GOOGLE_CALENDAR_ID=primary
+
+# ── Open-Source LLM Resume Corroboration Engine (Qwen 2.5 7B) ───────────────
+
+OPENSOURCE_LLM_MODEL=Qwen/Qwen2.5-7B-Instruct
+
+# HF_TOKEN=hf_your_huggingface_token_here (optional for hosted HuggingFace API)
+
+# OLLAMA_URL=http://localhost:11434/api/generate (optional for local Ollama)
+
+# ── 2Factor.in SMS Gateway ──────────────────────────────────────────────────
+TWOFACTOR_API_KEY=
+
+# ── Email Real-Time Delivery (Gmail SMTP) ───────────────────────────────────
+SMTP_HOST=
+SMTP_PORT=
+SMTP_USER=
+SMTP_PASS=
+EMAIL_FROM=
 ```
 
-Add any additional Firebase, Google, email, or API credentials required by your implementation.
+
 
 ### 4. Run the project
 
