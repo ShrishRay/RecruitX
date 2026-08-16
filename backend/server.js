@@ -12,6 +12,7 @@ const candidateRoutes = require('./routes/candidateRoutes');
 const jobRoutes = require('./routes/jobRoutes');
 const applicationRoutes = require('./routes/applicationRoutes');
 const matchRoutes = require('./routes/matchRoutes');
+const interviewRoutes = require('./routes/interviewRoutes');
 
 const app = express();
 
@@ -26,6 +27,7 @@ app.use('/api/candidate', candidateRoutes);
 app.use('/api/jobs', jobRoutes);
 app.use('/api/applications', applicationRoutes);
 app.use('/api/match', matchRoutes);
+app.use('/api/interviews', interviewRoutes);
 
 // ── Health check ─────────────────────────────────────────
 app.get('/api/health', (req, res) => {

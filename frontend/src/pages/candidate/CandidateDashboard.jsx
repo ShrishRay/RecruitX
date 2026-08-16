@@ -13,11 +13,13 @@ import SkillAssessmentModal from '../../components/SkillAssessmentModal';
 export default function CandidateDashboard() {
   const { user } = useAuth();
   const [applications, setApplications] = useState([]);
+  const [interviews, setInterviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [assessmentJob, setAssessmentJob] = useState(null);
 
   useEffect(() => {
     fetchApplications();
+    fetchInterviews();
   }, []);
 
   const fetchApplications = async () => {
@@ -31,12 +33,25 @@ export default function CandidateDashboard() {
     }
   };
 
+  const fetchInterviews = async () => {
+    try {
+      const res = await api.get('/interviews/candidate');
+      setInterviews(res.data.interviews || []);
+    } catch (err) {
+      console.error('Error fetching interviews:', err);
+    }
+  };
+
   const isResumeVerified = !!user?.isResumeVerified && !user?.isSuspended && user?.accountStatus !== 'rejected';
+  const now = new Date();
+  const upcomingInterviews = interviews.filter(
+    i => (i.status === 'scheduled' || i.status === 'rescheduled') && new Date(i.startTime) >= now
+  );
 
   const stats = {
     total: applications.length,
     shortlisted: applications.filter(a => a.status === 'shortlisted').length,
-    rejected: applications.filter(a => a.status === 'rejected').length,
+    interviews: upcomingInterviews.length,
     avgScore: applications.length > 0
       ? Math.round(applications.reduce((sum, a) => sum + a.matchScore, 0) / applications.length)
       : 0,
@@ -71,6 +86,16 @@ export default function CandidateDashboard() {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
+          <Link to="/candidate/interviews">
+            <Button size="md" className="font-bold bg-emerald-600 hover:bg-emerald-700 text-white flex items-center gap-1.5 shadow-sm">
+              <span>🎥 Interviews</span>
+              {upcomingInterviews.length > 0 && (
+                <span className="px-1.5 py-0.2 bg-white text-emerald-800 rounded-full text-[10px] font-black">
+                  {upcomingInterviews.length}
+                </span>
+              )}
+            </Button>
+          </Link>
           <Link to="/candidate/profile">
             <Button variant="secondary" size="md" className="font-bold">
               {isResumeVerified ? '🛡️ Resume Verified ✓' : '⚠️ Verify Resume'}
@@ -84,12 +109,86 @@ export default function CandidateDashboard() {
         </div>
       </div>
 
+      {/* ── UPCOMING INTERVIEW HERO BANNER (If scheduled) ── */}
+      {upcomingInterviews.length > 0 && (
+        <div className="space-y-3">
+          {upcomingInterviews.slice(0, 2).map((interview) => {
+            const job = interview.job || {};
+            const recruiter = interview.recruiter || job.postedBy || {};
+            const startDate = new Date(interview.startTime);
+
+            return (
+              <Card
+                key={interview._id}
+                hover={false}
+                className="p-5 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white shadow-lg border-2 border-emerald-500/60"
+              >
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div className="space-y-2 max-w-2xl">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                        Active Interview Invitation
+                      </span>
+                      <span className="text-xs font-bold text-slate-300">
+                        {recruiter.company ? `with ${recruiter.company}` : ''}
+                      </span>
+                    </div>
+
+                    <h2 className="text-lg font-extrabold text-white">
+                      {job.title || interview.title || 'Technical Interview Round'}
+                    </h2>
+
+                    <div className="flex flex-wrap items-center gap-3 text-xs text-slate-300 font-medium">
+                      <span>🗓️ <strong>{startDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</strong></span>
+                      <span>⏰ <strong>{startDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</strong> ({interview.durationMinutes || 45} mins)</span>
+                      <span>👤 Recruiter: {recruiter.name || interview.recruiterName}</span>
+                    </div>
+
+                    {interview.description && (
+                      <p className="text-xs text-slate-300/90 bg-white/10 p-2 rounded-lg">
+                        <strong>Agenda:</strong> {interview.description}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row md:flex-col items-stretch sm:items-center md:items-end gap-2.5 shrink-0">
+                    {interview.meetLink && (
+                      <a
+                        href={interview.meetLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold rounded-xl text-xs flex items-center justify-center gap-2 transition-all shadow-md"
+                      >
+                        <span className="text-base">🎥</span>
+                        <span>Join Google Meet Call</span>
+                      </a>
+                    )}
+
+                    {interview.googleCalendarLink && (
+                      <a
+                        href={interview.googleCalendarLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-3.5 py-1.5 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 border border-white/20"
+                      >
+                        <span>📅 Add to Google Calendar</span>
+                      </a>
+                    )}
+                  </div>
+                </div>
+              </Card>
+            );
+          })}
+        </div>
+      )}
+
       {/* Stats Overview */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           { label: 'Total Applications', value: stats.total, color: 'text-indigo-600', icon: '📋' },
           { label: 'Shortlisted', value: stats.shortlisted, color: 'text-emerald-600', icon: '⭐' },
-          { label: 'Under Review', value: stats.total - stats.shortlisted - stats.rejected, color: 'text-blue-600', icon: '⏳' },
+          { label: 'Interviews Scheduled', value: stats.interviews, color: 'text-emerald-600', icon: '🎥' },
           { label: 'Avg Match Score', value: `${stats.avgScore}%`, color: 'text-purple-600', icon: '🎯' },
         ].map((stat) => (
           <Card key={stat.label} hover={false} className="p-5">
@@ -189,6 +288,42 @@ export default function CandidateDashboard() {
                           );
                         })}
                       </div>
+
+                      {/* Interview Scheduled Badge & Join Meet */}
+                      {app.interview && (app.interview.status === 'scheduled' || app.interview.status === 'rescheduled') && (
+                        <div className="mt-2 p-2.5 bg-emerald-50 border border-emerald-200 rounded-xl flex flex-wrap items-center justify-between gap-2">
+                          <div className="flex items-center gap-2 text-xs text-emerald-900 font-bold">
+                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                            <span>🎥 Video Interview Scheduled:</span>
+                            <span className="font-semibold text-emerald-800">
+                              {new Date(app.interview.startTime).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} at {new Date(app.interview.startTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            {app.interview.meetLink && (
+                              <a
+                                href={app.interview.meetLink}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-xs shadow-xs"
+                              >
+                                Join Google Meet
+                              </a>
+                            )}
+                            {app.interview.googleCalendarLink && (
+                              <a
+                                href={app.interview.googleCalendarLink}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="px-2.5 py-1 bg-white hover:bg-slate-50 text-slate-700 rounded-lg font-bold text-xs border border-slate-200"
+                              >
+                                📅 Calendar
+                              </a>
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     {/* Right Gauge & Assessment Button */}

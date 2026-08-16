@@ -9,6 +9,8 @@ import Spinner from '../../components/ui/Spinner';
 import EmptyState from '../../components/ui/EmptyState';
 import Modal from '../../components/ui/Modal';
 import { useToast } from '../../context/ToastContext';
+import ScheduleInterviewModal from '../../components/ScheduleInterviewModal';
+import RescheduleInterviewModal from '../../components/RescheduleInterviewModal';
 
 export default function JobCandidates() {
   const { jobId } = useParams();
@@ -19,6 +21,8 @@ export default function JobCandidates() {
   const [updating, setUpdating] = useState(null);
   const [selectedCandidate, setSelectedCandidate] = useState(null);
   const [filterView, setFilterView] = useState('qualified'); // 'qualified' | 'all'
+  const [schedulingCandidate, setSchedulingCandidate] = useState(null);
+  const [reschedulingInterview, setReschedulingInterview] = useState(null);
 
   useEffect(() => {
     fetchCandidates();
@@ -291,6 +295,69 @@ export default function JobCandidates() {
                         ))}
                       </div>
                     )}
+                    {/* Interview Scheduled Card / Banner */}
+                    {item.interview && item.interview.status !== 'cancelled' ? (
+                      <div className="mt-2 p-3 bg-gradient-to-r from-indigo-900 via-indigo-950 to-slate-900 text-white rounded-xl shadow-xs border border-indigo-700/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                            <p className="font-extrabold text-xs text-white flex items-center gap-1.5">
+                              <span>🎥 Google Meet Interview Confirmed</span>
+                            </p>
+                            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-500/30 text-indigo-200 border border-indigo-400/30 capitalize">
+                              {item.interview.status}
+                            </span>
+                          </div>
+                          <p className="text-xs text-slate-300 font-semibold">
+                            🗓️ {new Date(item.interview.startTime).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })} at {new Date(item.interview.startTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })} ({item.interview.durationMinutes || 45} mins)
+                          </p>
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-2 shrink-0">
+                          {item.interview.meetLink && (
+                            <a
+                              href={item.interview.meetLink}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-extrabold flex items-center gap-1.5 transition-all shadow-xs"
+                            >
+                              <span>🎥 Join Meet</span>
+                            </a>
+                          )}
+
+                          {item.interview.googleCalendarLink && (
+                            <a
+                              href={item.interview.googleCalendarLink}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="px-2.5 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs font-bold transition-all border border-white/20"
+                            >
+                              <span>📅 Calendar</span>
+                            </a>
+                          )}
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              navigator.clipboard.writeText(item.interview.meetLink);
+                              showSuccess('Google Meet link copied to clipboard!');
+                            }}
+                            className="px-2.5 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs font-bold transition-all border border-white/20 cursor-pointer"
+                            title="Copy Google Meet link"
+                          >
+                            📋
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => setReschedulingInterview(item.interview)}
+                            className="px-2.5 py-1.5 rounded-lg bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-200 text-xs font-bold transition-all border border-indigo-400/30 cursor-pointer"
+                          >
+                            Reschedule
+                          </button>
+                        </div>
+                      </div>
+                    ) : null}
                   </div>
 
                   {/* Right Actions & Match Gauge */}
@@ -308,6 +375,17 @@ export default function JobCandidates() {
                       >
                         Audit Details
                       </Button>
+
+                      {/* Schedule Interview Button if candidate is shortlisted */}
+                      {item.status === 'shortlisted' && (!item.interview || item.interview.status === 'cancelled') && (
+                        <Button
+                          size="sm"
+                          onClick={() => setSchedulingCandidate(item)}
+                          className="font-extrabold text-white bg-indigo-600 hover:bg-indigo-700 shadow-xs flex items-center gap-1"
+                        >
+                          <span>📅 Schedule Interview</span>
+                        </Button>
+                      )}
 
                       {item.status !== 'shortlisted' && (
                         <Button
@@ -418,6 +496,18 @@ export default function JobCandidates() {
               <Button variant="secondary" onClick={() => setSelectedCandidate(null)}>
                 Close
               </Button>
+              {selectedCandidate.status === 'shortlisted' && (
+                <Button
+                  onClick={() => {
+                    const cand = selectedCandidate;
+                    setSelectedCandidate(null);
+                    setSchedulingCandidate(cand);
+                  }}
+                  className="font-bold text-white bg-indigo-600 hover:bg-indigo-700"
+                >
+                  📅 Schedule Interview
+                </Button>
+              )}
               {selectedCandidate.status !== 'shortlisted' && (
                 <Button
                   disabled={!selectedCandidate.isShortlistEligible}
@@ -434,6 +524,31 @@ export default function JobCandidates() {
             </div>
           </div>
         </Modal>
+      )}
+
+      {/* Schedule Interview Modal */}
+      {schedulingCandidate && (
+        <ScheduleInterviewModal
+          isOpen={!!schedulingCandidate}
+          onClose={() => setSchedulingCandidate(null)}
+          application={schedulingCandidate}
+          job={job}
+          onScheduled={(interviewData) => {
+            fetchCandidates();
+          }}
+        />
+      )}
+
+      {/* Reschedule Interview Modal */}
+      {reschedulingInterview && (
+        <RescheduleInterviewModal
+          isOpen={!!reschedulingInterview}
+          onClose={() => setReschedulingInterview(null)}
+          interview={reschedulingInterview}
+          onUpdated={(updatedInterview) => {
+            fetchCandidates();
+          }}
+        />
       )}
     </div>
   );

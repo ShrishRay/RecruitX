@@ -264,6 +264,7 @@ exports.getCandidateApplications = async (req, res) => {
           select: 'name company isCompanyVerified trustScore'
         }
       })
+      .populate('interview')
       .sort({ appliedAt: -1 });
 
     res.json({ applications });
@@ -290,6 +291,7 @@ exports.getJobApplications = async (req, res) => {
 
     const applications = await Application.find({ job: req.params.jobId })
       .populate('candidate', 'name email phone skills experience preferredRole preferredLocation education projects isResumeVerified warningsCount accountStatus isSuspended trustScore isEmailVerified isPhoneVerified')
+      .populate('interview')
       .sort({ matchScore: -1 });
 
     const totalAssessmentsCount = job.assessments?.length || (job.assessment ? 1 : 0);
@@ -343,7 +345,9 @@ exports.getJobApplications = async (req, res) => {
           isResumeVerified,
           isShortlistEligible,
           status: app.status,
-          appliedAt: app.appliedAt
+          appliedAt: app.appliedAt,
+          interviewScheduled: app.interviewScheduled || (!!app.interview && app.interview.status !== 'cancelled'),
+          interview: app.interview || null
         };
       });
 

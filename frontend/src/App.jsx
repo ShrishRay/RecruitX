@@ -16,11 +16,13 @@ import CandidateDashboard from './pages/candidate/CandidateDashboard';
 import ProfilePage from './pages/candidate/ProfilePage';
 import BrowseJobs from './pages/candidate/BrowseJobs';
 import MockTestPage from './pages/candidate/MockTestPage';
+import CandidateInterviews from './pages/candidate/CandidateInterviews';
 
 // Recruiter Pages
 import RecruiterDashboard from './pages/recruiter/RecruiterDashboard';
 import PostJob from './pages/recruiter/PostJob';
 import JobCandidates from './pages/recruiter/JobCandidates';
+import RecruiterInterviews from './pages/recruiter/RecruiterInterviews';
 
 /**
  * Protected route wrapper — redirects to login if not authenticated.
@@ -84,6 +86,7 @@ export default function App() {
               <Route path="dashboard" element={<CandidateDashboard />} />
               <Route path="profile" element={<ProfilePage />} />
               <Route path="jobs" element={<BrowseJobs />} />
+              <Route path="interviews" element={<CandidateInterviews />} />
               <Route path="mock-test" element={<MockTestPage />} />
               <Route index element={<Navigate to="dashboard" replace />} />
             </Route>
@@ -99,6 +102,7 @@ export default function App() {
             >
               <Route path="dashboard" element={<RecruiterDashboard />} />
               <Route path="post-job" element={<PostJob />} />
+              <Route path="interviews" element={<RecruiterInterviews />} />
               <Route path="jobs/:jobId/candidates" element={<JobCandidates />} />
               <Route index element={<Navigate to="dashboard" replace />} />
             </Route>

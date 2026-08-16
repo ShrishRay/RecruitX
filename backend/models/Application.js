@@ -44,7 +44,11 @@ const applicationSchema = new mongoose.Schema({
     isCorrect: Boolean,
     questionText: String,
     skill: String
-  }]
+  }],
+
+  // Interview Scheduling
+  interviewScheduled: { type: Boolean, default: false },
+  interview: { type: mongoose.Schema.Types.ObjectId, ref: 'Interview', default: null }
 }, {
   timestamps: true
 });

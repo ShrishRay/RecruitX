@@ -195,18 +195,6 @@ async function seedDatabase() {
       isResumeVerified: false, warningsCount: 0,
       education: { degree: 'B.S. Software Engineering', institution: 'UT Austin', year: 2023 },
       preferredRole: 'Backend Developer', preferredLocation: 'Remote'
-    },
-    {
-      name: 'Atharva Vinod Joshi', email: 'atharv1132006@gmail.com', password: 'password123', role: 'candidate',
-      phone: '8805611378', isEmailVerified: true, isPhoneVerified: true, trustScore: 100,
-      skills: ['React', 'Node.js', 'JavaScript', 'TypeScript', 'MongoDB', 'Python', 'AWS'], experience: 3,
-      isResumeVerified: true, resumeScore: 100, verifiedSkills: ['React', 'Node.js', 'JavaScript', 'TypeScript', 'MongoDB'],
-      resumeFileName: 'ATHARVA_JOSHI_Resume.pdf', warningsCount: 0,
-      projects: [
-        { title: 'AI Recruitment Platform', description: 'Full-stack platform with LLM resume corroboration and verification pipeline', technologies: ['React', 'Node.js', 'MongoDB', 'Tailwind CSS'] }
-      ],
-      education: { degree: 'B.Tech Computer Engineering', institution: 'Engineering University', year: 2025 },
-      preferredRole: 'Full Stack Engineer', preferredLocation: 'Remote'
     }
   ];
 
@@ -247,8 +235,6 @@ async function seedDatabase() {
   const sampleApps = [
     // Elena Rostova (Verified, Match 85%, Assessment 100% -> Qualified for Shortlisting)
     { candidateIdx: 8, jobIdx: 0, assessmentScore: 100, assessmentPassed: true, status: 'shortlisted' },
-    // Atharva Joshi (Verified, Match 90%, Assessment 85% -> Qualified for Shortlisting)
-    { candidateIdx: 10, jobIdx: 0, assessmentScore: 85, assessmentPassed: true, status: 'shortlisted' },
     // Mia Johnson (Verified, Match 75%, Assessment 80% -> Qualified for Shortlisting)
     { candidateIdx: 4, jobIdx: 0, assessmentScore: 80, assessmentPassed: true, status: 'applied' },
     // Alex Rivera (Resume Unverified, Match 85%, Assessment 75% -> Pending Resume Verification)
