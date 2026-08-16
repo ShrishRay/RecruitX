@@ -8,7 +8,7 @@ import { useToast } from '../context/ToastContext';
 export default function VerificationModal({ isOpen = true, onClose, defaultType }) {
   const { user, sendOtp, verifyOtp, verifyCompany } = useAuth();
   const { showSuccess, showError } = useToast();
-  
+
   const isRecruiter = user?.role === 'recruiter';
   const initialTab = defaultType || (isRecruiter ? (!user?.isCompanyVerified ? 'company' : !user?.isEmailVerified ? 'email' : 'phone') : (!user?.isEmailVerified ? 'email' : 'phone'));
 
@@ -135,7 +135,7 @@ export default function VerificationModal({ isOpen = true, onClose, defaultType 
           <div>
             <p className="text-xs text-slate-400 font-medium">Authenticity & Verification Status</p>
             <p className="text-sm font-bold text-white mt-0.5">
-              {isRecruiter 
+              {isRecruiter
                 ? `Recruiter Trust Score: ${user?.trustScore || 0}%`
                 : (user?.isEmailVerified && user?.isPhoneVerified ? 'Verified Candidate (100% Trust)' : 'Verification Pending')}
             </p>
@@ -163,7 +163,7 @@ export default function VerificationModal({ isOpen = true, onClose, defaultType 
               onClick={() => { setActiveTab('company'); setOtpSent(false); setOtpInput(''); }}
               className={`flex-1 py-3 text-xs font-bold transition-all border-b-2 cursor-pointer ${activeTab === 'company' ? 'border-indigo-600 text-indigo-600 bg-indigo-50/50' : 'border-transparent text-slate-500 hover:text-slate-900'}`}
             >
-              🏢 Company & Website {user?.isCompanyVerified ? ' (✓)' : ' (+40%)'}
+              Company & Website {user?.isCompanyVerified ? ' (✓)' : ' (+40%)'}
             </button>
           )}
           <button
@@ -171,14 +171,14 @@ export default function VerificationModal({ isOpen = true, onClose, defaultType 
             onClick={() => { setActiveTab('email'); setOtpSent(false); setOtpInput(''); }}
             className={`flex-1 py-3 text-xs font-bold transition-all border-b-2 cursor-pointer ${activeTab === 'email' ? 'border-indigo-600 text-indigo-600 bg-indigo-50/50' : 'border-transparent text-slate-500 hover:text-slate-900'}`}
           >
-            ✉️ {isRecruiter ? 'Work Email' : 'Email Address'} {user?.isEmailVerified ? ' (✓)' : isRecruiter ? ' (+30%)' : ' (+50%)'}
+            {isRecruiter ? 'Work Email' : 'Email Address'} {user?.isEmailVerified ? ' (✓)' : isRecruiter ? ' (+30%)' : ' (+50%)'}
           </button>
           <button
             type="button"
             onClick={() => { setActiveTab('phone'); setOtpSent(false); setOtpInput(''); }}
             className={`flex-1 py-3 text-xs font-bold transition-all border-b-2 cursor-pointer ${activeTab === 'phone' ? 'border-indigo-600 text-indigo-600 bg-indigo-50/50' : 'border-transparent text-slate-500 hover:text-slate-900'}`}
           >
-            📱 Mobile Phone {user?.isPhoneVerified ? ' (✓)' : isRecruiter ? ' (+30%)' : ' (+50%)'}
+            Mobile Phone {user?.isPhoneVerified ? ' (✓)' : isRecruiter ? ' (+30%)' : ' (+50%)'}
           </button>
         </div>
 
@@ -318,7 +318,7 @@ export default function VerificationModal({ isOpen = true, onClose, defaultType 
                     required
                   />
                   <p className="text-[11px] text-slate-500 font-medium px-1">
-                    🔒 Email address is permanent and non-editable. Verification codes are strictly sent to your registered profile email.
+                    Email address is permanent and non-editable. Verification codes are strictly sent to your registered profile email.
                   </p>
                 </div>
 
@@ -392,7 +392,7 @@ export default function VerificationModal({ isOpen = true, onClose, defaultType 
                     required
                   />
                   <p className="text-[11px] text-slate-500 font-medium px-1">
-                    🔒 Mobile phone number is permanent and non-editable. Verification codes are strictly sent to your registered profile phone.
+                    Mobile phone number is permanent and non-editable. Verification codes are strictly sent to your registered profile phone.
                   </p>
                 </div>
 

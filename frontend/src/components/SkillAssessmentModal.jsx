@@ -37,7 +37,7 @@ export default function SkillAssessmentModal({ isOpen, onClose, job, onAssessmen
       setAssessmentsList(list);
       setOverallThreshold(res.data.overallPassingThreshold || 60);
       setActiveModuleIndex(0);
-      
+
       const firstMod = list[0];
       if (firstMod && !firstMod.alreadyTaken) {
         setTimeLeft((firstMod.timeLimit || 15) * 60);
@@ -80,7 +80,7 @@ export default function SkillAssessmentModal({ isOpen, onClose, job, onAssessmen
   }, [activeModuleIndex, isOpen, isAlreadyTaken, !!result]);
 
   const handleAutoSubmitOnTimeout = async () => {
-    showError('⏱️ Time Expired! Automatically submitting your assessment attempt now.');
+    showError('Time Expired! Automatically submitting your assessment attempt now.');
     handleSubmit(true);
   };
 
@@ -119,7 +119,7 @@ export default function SkillAssessmentModal({ isOpen, onClose, job, onAssessmen
     try {
       const answersArray = questions.map((_, i) => selectedAnswers[i]);
       const moduleId = currentModule?._id || currentModule?.id;
-      const endpoint = moduleId 
+      const endpoint = moduleId
         ? `/applications/job/${job.id}/assessment/${moduleId}`
         : `/applications/job/${job.id}/assessment`;
 
@@ -129,15 +129,15 @@ export default function SkillAssessmentModal({ isOpen, onClose, job, onAssessmen
 
       setResult(res.data);
       if (res.data.passed) {
-        showSuccess(`🎉 Module Passed with ${res.data.score}%!`);
+        showSuccess(`Module Passed with ${res.data.score}%!`);
       } else {
         showError(`Module Score: ${res.data.score}%. Passing threshold was ${res.data.passingThreshold}%.`);
       }
 
       // Mark module as taken in local list
-      setAssessmentsList(prev => prev.map((m, idx) => 
-        idx === activeModuleIndex 
-          ? { ...m, alreadyTaken: true, score: res.data.score, passed: res.data.passed } 
+      setAssessmentsList(prev => prev.map((m, idx) =>
+        idx === activeModuleIndex
+          ? { ...m, alreadyTaken: true, score: res.data.score, passed: res.data.passed }
           : m
       ));
 
@@ -194,18 +194,16 @@ export default function SkillAssessmentModal({ isOpen, onClose, job, onAssessmen
                     key={idx}
                     type="button"
                     onClick={() => handleSelectModule(idx)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-                      activeModuleIndex === idx
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${activeModuleIndex === idx
                         ? 'bg-white text-indigo-900 shadow-xs'
                         : 'text-slate-600 hover:text-slate-900'
-                    }`}
+                      }`}
                   >
                     <span>{mod.skill ? `${mod.skill}` : `Round ${idx + 1}`}</span>
                     <span className="text-[10px] text-slate-400 font-semibold">({mod.timeLimit || 15}m)</span>
                     {mod.alreadyTaken && (
-                      <span className={`text-[10px] px-1 py-0.2 rounded font-black ${
-                        mod.passed ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'
-                      }`}>
+                      <span className={`text-[10px] px-1 py-0.2 rounded font-black ${mod.passed ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'
+                        }`}>
                         {mod.score}% {mod.passed ? '✓' : '✗'}
                       </span>
                     )}
@@ -218,9 +216,8 @@ export default function SkillAssessmentModal({ isOpen, onClose, job, onAssessmen
           {/* ── CASE 1: JUST SUBMITTED (RESULT SCREEN) ── */}
           {result ? (
             <div className="space-y-6 py-2 animate-fade-in text-center">
-              <div className={`w-16 h-16 rounded-full mx-auto flex items-center justify-center text-2xl shadow-md ${
-                result.passed ? 'bg-emerald-100 text-emerald-700 border-2 border-emerald-300' : 'bg-rose-100 text-rose-700 border-2 border-rose-300'
-              }`}>
+              <div className={`w-16 h-16 rounded-full mx-auto flex items-center justify-center text-2xl shadow-md ${result.passed ? 'bg-emerald-100 text-emerald-700 border-2 border-emerald-300' : 'bg-rose-100 text-rose-700 border-2 border-rose-300'
+                }`}>
                 {result.passed ? '✓' : '✗'}
               </div>
 
@@ -237,7 +234,7 @@ export default function SkillAssessmentModal({ isOpen, onClose, job, onAssessmen
 
               {/* 1-Attempt Lock Notice */}
               <div className="p-2.5 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800 font-semibold max-w-md mx-auto flex items-center justify-center gap-1.5">
-                <span>🔒 Single-Attempt Enforced: This assessment cannot be retaken.</span>
+                <span>Single-Attempt Enforced: This assessment cannot be retaken.</span>
               </div>
 
               {/* Score Cards Breakdown */}
@@ -259,15 +256,15 @@ export default function SkillAssessmentModal({ isOpen, onClose, job, onAssessmen
                 <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
                   <p className="text-[10px] font-bold uppercase text-slate-500">Shortlist Eligibility</p>
                   <p className={`text-xs font-black mt-1.5 ${result.isQualifiedForShortlisting ? 'text-emerald-700' : 'text-amber-700'}`}>
-                    {result.isQualifiedForShortlisting ? '✅ 100% Qualified' : '⚠️ Additional Req.'}
+                    {result.isQualifiedForShortlisting ? '✅ 100% Qualified' : 'Additional Req.'}
                   </p>
                   <p className="text-[10px] text-slate-500">
-                    {result.isQualifiedForShortlisting 
-                      ? 'Visible for shortlisting' 
-                      : !result.isResumeVerified 
-                        ? 'Resume verification required' 
-                        : result.matchScore < 50 
-                          ? 'Match score must be ≥ 50%' 
+                    {result.isQualifiedForShortlisting
+                      ? 'Visible for shortlisting'
+                      : !result.isResumeVerified
+                        ? 'Resume verification required'
+                        : result.matchScore < 50
+                          ? 'Match score must be ≥ 50%'
                           : !result.allAssessmentsPassed
                             ? `Requires overall grade ≥ ${overallThreshold}%`
                             : 'Score below threshold'}
@@ -294,15 +291,14 @@ export default function SkillAssessmentModal({ isOpen, onClose, job, onAssessmen
           ) : isAlreadyTaken ? (
             /* ── CASE 2: ALREADY TAKEN LOCKED SCORECARD SCREEN ── */
             <div className="space-y-6 py-4 animate-fade-in text-center">
-              <div className={`w-16 h-16 rounded-full mx-auto flex items-center justify-center text-2xl shadow-md ${
-                currentModule.passed ? 'bg-emerald-100 text-emerald-700 border-2 border-emerald-300' : 'bg-rose-100 text-rose-700 border-2 border-rose-300'
-              }`}>
+              <div className={`w-16 h-16 rounded-full mx-auto flex items-center justify-center text-2xl shadow-md ${currentModule.passed ? 'bg-emerald-100 text-emerald-700 border-2 border-emerald-300' : 'bg-rose-100 text-rose-700 border-2 border-rose-300'
+                }`}>
                 {currentModule.passed ? '✓' : '✗'}
               </div>
 
               <div>
                 <span className="text-xs font-black uppercase tracking-wider bg-slate-900 text-white px-3 py-1 rounded-full">
-                  🔒 Attempt Completed (1 of 1 Allowed)
+                  Attempt Completed (1 of 1 Allowed)
                 </span>
                 <h3 className="text-xl font-extrabold text-slate-900 mt-2">
                   {currentModule.title || 'Technical Assessment'}
@@ -351,14 +347,12 @@ export default function SkillAssessmentModal({ isOpen, onClose, job, onAssessmen
 
                 {/* Live Countdown Timer */}
                 <div className="flex items-center gap-2">
-                  <div className={`px-3 py-1.5 rounded-xl font-mono text-xs font-black flex items-center gap-1.5 shadow-xs transition-all ${
-                    isTimeCritical
+                  <div className={`px-3 py-1.5 rounded-xl font-mono text-xs font-black flex items-center gap-1.5 shadow-xs transition-all ${isTimeCritical
                       ? 'bg-rose-600 text-white animate-pulse'
                       : isTimeWarning
                         ? 'bg-amber-500 text-white'
                         : 'bg-indigo-950 text-indigo-200 border border-indigo-500/40'
-                  }`}>
-                    <span>⏱️</span>
+                    }`}>
                     <span>{formatTime(timeLeft)} Remaining</span>
                   </div>
 
@@ -370,7 +364,7 @@ export default function SkillAssessmentModal({ isOpen, onClose, job, onAssessmen
 
               {/* Single Attempt Notice */}
               <div className="px-3 py-2 bg-amber-50 border border-amber-200 rounded-xl text-[11px] text-amber-900 font-semibold flex items-center justify-between">
-                <span>⚠️ Single Attempt: Auto-submits when timer reaches 00:00.</span>
+                <span>Single Attempt: Auto-submits when timer reaches 00:00.</span>
                 <span className="font-bold">Allocated Time: {timeLimit} Minutes</span>
               </div>
 
@@ -381,7 +375,7 @@ export default function SkillAssessmentModal({ isOpen, onClose, job, onAssessmen
                   <span>{answeredCount} of {totalQuestions} Answered ({progressPercent}%)</span>
                 </div>
                 <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-                  <div 
+                  <div
                     className="h-full bg-gradient-to-r from-indigo-600 to-violet-600 transition-all duration-300 rounded-full"
                     style={{ width: `${progressPercent}%` }}
                   />
@@ -411,16 +405,14 @@ export default function SkillAssessmentModal({ isOpen, onClose, job, onAssessmen
                           key={optIdx}
                           type="button"
                           onClick={() => handleSelectOption(currentStep, optIdx)}
-                          className={`w-full p-3.5 rounded-xl border text-left text-xs sm:text-sm font-medium transition-all flex items-center justify-between cursor-pointer ${
-                            isSelected 
-                              ? 'border-indigo-600 bg-indigo-50/70 text-indigo-950 font-bold shadow-xs' 
+                          className={`w-full p-3.5 rounded-xl border text-left text-xs sm:text-sm font-medium transition-all flex items-center justify-between cursor-pointer ${isSelected
+                              ? 'border-indigo-600 bg-indigo-50/70 text-indigo-950 font-bold shadow-xs'
                               : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50/80 text-slate-700'
-                          }`}
+                            }`}
                         >
                           <div className="flex items-center gap-3">
-                            <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 transition-colors ${
-                              isSelected ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600 border border-slate-200'
-                            }`}>
+                            <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 transition-colors ${isSelected ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600 border border-slate-200'
+                              }`}>
                               {String.fromCharCode(65 + optIdx)}
                             </span>
                             <span>{option}</span>
@@ -453,13 +445,12 @@ export default function SkillAssessmentModal({ isOpen, onClose, job, onAssessmen
                       key={i}
                       type="button"
                       onClick={() => setCurrentStep(i)}
-                      className={`w-7 h-7 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
-                        currentStep === i 
-                          ? 'bg-indigo-600 text-white' 
-                          : selectedAnswers[i] !== undefined 
-                            ? 'bg-indigo-100 text-indigo-700' 
+                      className={`w-7 h-7 rounded-lg text-xs font-bold transition-colors cursor-pointer ${currentStep === i
+                          ? 'bg-indigo-600 text-white'
+                          : selectedAnswers[i] !== undefined
+                            ? 'bg-indigo-100 text-indigo-700'
                             : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
-                      }`}
+                        }`}
                     >
                       {i + 1}
                     </button>

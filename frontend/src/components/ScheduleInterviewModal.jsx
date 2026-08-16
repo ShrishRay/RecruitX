@@ -65,7 +65,7 @@ export default function ScheduleInterviewModal({
         description: description.trim()
       });
 
-      showSuccess('🎉 Interview scheduled! Calendar appointments and Google Meet link dispatched.');
+      showSuccess('Interview scheduled! Calendar appointments and Google Meet link dispatched.');
       if (onScheduled) {
         onScheduled(res.data.interview || res.data);
       }
@@ -84,7 +84,7 @@ export default function ScheduleInterviewModal({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="📅 Schedule Candidate Interview"
+      title="Schedule Candidate Interview"
       size="md"
     >
       <form onSubmit={handleSubmit} className="space-y-4 text-xs">
@@ -194,7 +194,6 @@ export default function ScheduleInterviewModal({
 
         {/* Feature Highlights Banner */}
         <div className="p-3 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200/80 rounded-xl flex items-start gap-2.5">
-          <span className="text-base">✨</span>
           <div className="space-y-0.5">
             <p className="font-bold text-emerald-950 text-xs">
               Automated Google Meet & Calendar Appointment
@@ -220,7 +219,7 @@ export default function ScheduleInterviewModal({
             loading={loading}
             className="font-bold text-white bg-indigo-600 hover:bg-indigo-700 shadow-xs"
           >
-            Confirm & Schedule Meet 🚀
+            Confirm & Schedule Meet
           </Button>
         </div>
       </form>

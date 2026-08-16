@@ -56,7 +56,7 @@ export default function RescheduleInterviewModal({
         notes: notes.trim()
       });
 
-      showSuccess('🎉 Interview rescheduled! Updated calendar invites sent.');
+      showSuccess(' Interview rescheduled! Updated calendar invites sent.');
       if (onUpdated) {
         onUpdated(res.data.interview);
       }
@@ -94,7 +94,7 @@ export default function RescheduleInterviewModal({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={actionType === 'reschedule' ? '🗓️ Reschedule Interview' : '⚠️ Cancel Interview'}
+      title={actionType === 'reschedule' ? 'Reschedule Interview' : 'Cancel Interview'}
       size="md"
     >
       <div className="space-y-4 text-xs">
@@ -103,24 +103,22 @@ export default function RescheduleInterviewModal({
           <button
             type="button"
             onClick={() => setActionType('reschedule')}
-            className={`flex-1 py-1.5 rounded-lg font-bold text-xs transition-all cursor-pointer ${
-              actionType === 'reschedule'
+            className={`flex-1 py-1.5 rounded-lg font-bold text-xs transition-all cursor-pointer ${actionType === 'reschedule'
                 ? 'bg-white text-indigo-700 shadow-xs'
                 : 'text-slate-600 hover:text-slate-900'
-            }`}
+              }`}
           >
-            🗓️ Change Date & Time
+            Change Date & Time
           </button>
           <button
             type="button"
             onClick={() => setActionType('cancel')}
-            className={`flex-1 py-1.5 rounded-lg font-bold text-xs transition-all cursor-pointer ${
-              actionType === 'cancel'
+            className={`flex-1 py-1.5 rounded-lg font-bold text-xs transition-all cursor-pointer ${actionType === 'cancel'
                 ? 'bg-rose-600 text-white shadow-xs'
                 : 'text-slate-600 hover:text-rose-600'
-            }`}
+              }`}
           >
-            ❌ Cancel Meeting
+            Cancel Meeting
           </button>
         </div>
 
@@ -193,7 +191,7 @@ export default function RescheduleInterviewModal({
                 Close
               </Button>
               <Button type="submit" loading={loading} className="font-bold text-white bg-indigo-600 hover:bg-indigo-700">
-                Update & Send Invites 🚀
+                Update & Send Invites
               </Button>
             </div>
           </form>

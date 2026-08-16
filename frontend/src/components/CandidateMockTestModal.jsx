@@ -55,7 +55,7 @@ export default function CandidateMockTestModal({ isOpen, onClose }) {
       setSelectedAnswers({});
       setCurrentQuestionIndex(0);
       setStep('test');
-      showSuccess(`✨ Generated ${generated.questions.length} personalized ${difficulty} questions on ${activeSubject}!`);
+      showSuccess(`Generated ${generated.questions.length} personalized ${difficulty} questions on ${activeSubject}!`);
     } catch (err) {
       console.error('Generate mock test error:', err);
       showError(err.response?.data?.message || 'Failed to generate mock test');
@@ -123,10 +123,10 @@ export default function CandidateMockTestModal({ isOpen, onClose }) {
       onClose={onClose}
       title={
         step === 'config' 
-          ? '🤖 AI Personalized Mock Test Generator' 
+          ? 'AI Personalized Mock Test Generator' 
           : step === 'test' 
             ? `${testData?.subject} Mock Test (${testData?.difficulty})` 
-            : `📊 Mock Test Evaluation: ${resultData?.subject}`
+            : `Mock Test Evaluation: ${resultData?.subject}`
       }
       size="xl"
     >
@@ -137,7 +137,6 @@ export default function CandidateMockTestModal({ isOpen, onClose }) {
           <div className="p-4 rounded-2xl bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-xl">⚡</span>
                 <h3 className="text-base font-extrabold text-white">Open-Source LLM Practice Engine</h3>
                 <span className="text-[10px] font-black uppercase tracking-wider bg-indigo-500/30 text-indigo-300 px-2 py-0.5 rounded border border-indigo-400/30">
                   Qwen 2.5 7B
@@ -248,7 +247,7 @@ export default function CandidateMockTestModal({ isOpen, onClose }) {
               onClick={handleGenerateTest}
               className="font-bold bg-indigo-600 hover:bg-indigo-700 text-white px-6 shadow-sm"
             >
-              ✨ Generate {questionCount}-Question Mock Test
+              Generate {questionCount}-Question Mock Test
             </Button>
           </div>
         </div>
@@ -401,7 +400,7 @@ export default function CandidateMockTestModal({ isOpen, onClose }) {
             </div>
 
             <div className="p-3 bg-white/10 rounded-xl max-w-lg mx-auto text-xs text-slate-200 font-medium">
-              💡 {resultData.aiRecommendations}
+              {resultData.aiRecommendations}
             </div>
           </div>
 
@@ -451,7 +450,7 @@ export default function CandidateMockTestModal({ isOpen, onClose }) {
 
                 {/* Detailed AI Explanation */}
                 <div className="p-3 bg-white/90 rounded-lg border border-slate-200/90 text-xs text-slate-700 space-y-0.5">
-                  <p className="font-bold text-indigo-900 text-[11px]">🧠 Explanation:</p>
+                  <p className="font-bold text-indigo-900 text-[11px]">Explanation:</p>
                   <p className="text-slate-600 leading-relaxed font-medium">{item.explanation}</p>
                 </div>
               </div>
